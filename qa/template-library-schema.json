@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/runsi/html-template-library/index.schema.json",
+  "title": "HTML Template Library Index",
+  "description": "Metadata schema for the shared HTML presentation template library. Each entry describes one template with quality scores, visual characteristics, and source attribution.",
+  "type": "object",
+  "required": ["version", "updated", "templates"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version (SemVer)",
+      "default": "1.0.0"
+    },
+    "updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last index update"
+    },
+    "maintainer": {
+      "type": "string",
+      "description": "Squad/team responsible for the library"
+    },
+    "templates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "category", "source"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "description": "Unique kebab-case identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable template name"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "business-professional",
+              "creative-design",
+              "editorial-magazine",
+              "tech-data",
+              "academic-research",
+              "marketing-pitch",
+              "minimal-clean",
+              "bold-poster",
+              "vintage-retro",
+              "japanese-aesthetic",
+              "neo-brutalist",
+              "handcrafted",
+              "luxury-fashion",
+              "gaming-tech",
+              "activism-social",
+              "product-launch",
+              "quarterly-review",
+              "portfolio-personal",
+              "ecommerce-showcase",
+              "other"
+            ],
+            "description": "Primary use-case category"
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Search/discovery tags"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "One-sentence description of visual style and best use"
+          },
+          "colors": {
+            "type": "object",
+            "properties": {
+              "primary": { "type": "string", "description": "Dominant color (hex or name)" },
+              "secondary": { "type": "string" },
+              "accent": { "type": "string" },
+              "background": { "type": "string" },
+              "palette": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Full color palette"
+              }
+            }
+          },
+          "typography": {
+            "type": "object",
+            "properties": {
+              "headings": { "type": "string", "description": "Heading font family" },
+              "body": { "type": "string", "description": "Body font family" },
+              "display": { "type": "string", "description": "Display/accent font (if any)" },
+              "style": {
+                "type": "string",
+                "enum": ["serif", "sans-serif", "monospace", "display", "handwritten", "mixed"]
+              }
+            }
+          },
+          "layout": {
+            "type": "object",
+            "properties": {
+              "columns": { "type": "integer", "minimum": 1, "maximum": 4 },
+              "style": {
+                "type": "string",
+                "enum": ["single-column", "two-column", "grid", "magazine", "poster", "freeform", "data-dashboard"]
+              },
+              "slideCount": { "type": "integer", "minimum": 1 },
+              "aspectRatio": {
+                "type": "string",
+                "enum": ["16:9", "4:3", "A4", "letter", "square", "custom"]
+              }
+            }
+          },
+          "quality": {
+            "type": "object",
+            "properties": {
+              "overall": { "type": "integer", "minimum": 1, "maximum": 10 },
+              "codeQuality": { "type": "integer", "minimum": 1, "maximum": 10 },
+              "designQuality": { "type": "integer", "minimum": 1, "maximum": 10 },
+              "responsiveness": { "type": "integer", "minimum": 1, "maximum": 10 },
+              "accessibility": { "type": "integer", "minimum": 1, "maximum": 10 },
+              "performance": { "type": "integer", "minimum": 1, "maximum": 10 }
+            },
+            "description": "QA evaluation scores (1-10)"
+          },
+          "technical": {
+            "type": "object",
+            "properties": {
+              "standalone": { "type": "boolean", "description": "No external CDN dependencies" },
+              "responsive": { "type": "boolean", "description": "Has responsive meta + media queries" },
+              "framework": { "type": "string", "enum": ["none", "bootstrap", "tailwind", "bulma", "other"] },
+              "fileSize": { "type": "integer", "description": "Total size in KB" },
+              "hasJavaScript": { "type": "boolean" },
+              "semanticHTML": { "type": "boolean" }
+            }
+          },
+          "source": {
+            "type": "object",
+            "required": ["name", "url"],
+            "properties": {
+              "name": { "type": "string", "description": "Source name (e.g., 'beautiful-html-templates')" },
+              "url": { "type": "string", "format": "uri" },
+              "license": { "type": "string", "description": "License type" },
+              "originalAuthor": { "type": "string" },
+              "fetchedAt": { "type": "string", "format": "date-time" }
+            }
+          },
+          "assets": {
+            "type": "object",
+            "properties": {
+              "htmlPath": { "type": "string", "description": "Relative path to HTML file" },
+              "screenshots": {
+                "type": "array",
+                "items": { "type": "string" },
+                "minItems": 3,
+                "description": "At least 3 screenshots (cover, mid, end)"
+              }
+            }
+          },
+          "qaStatus": {
+            "type": "string",
+            "enum": ["pending", "passed", "failed", "needs-review"],
+            "description": "QA gate status for this template"
+          },
+          "qaNotes": {
+            "type": "string",
+            "description": "QA reviewer notes or issues found"
+          }
+        }
+      }
+    }
+  }
+}
