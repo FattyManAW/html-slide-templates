@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI-APS 排程如何切入智能製造深水區</title>
+  <style>
+
+    :root {
+      --bg: #fef7ed;
+      --primary: #2563eb;
+      --text: #111111;
+      --text-muted: #6b6b6b;
+      --text-light: #9a9a9a;
+      --accent-light: rgba(37, 99, 235, 0.08);
+      --accent-medium: rgba(37, 99, 235, 0.15);
+      --border: rgba(37, 99, 235, 0.2);
+      --gold: #f59e0b; --card-bg: rgba(37, 99, 235, 0.04);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Slide container */
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      /* Asymmetric padding: extra bottom space to clear the fixed
+         slide-counter (left) and nav-controls (right). Without this,
+         cards/grids that fill slide-content overlap the nav chrome. */
+      padding: 3.5vw 4vw 8.5vh 4vw;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(40px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      overflow: hidden;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateX(0);
+      z-index: 10;
+    }
+
+    .slide.prev {
+      transform: translateX(-40px);
+    }
+
+    /* Typography */
+    h1, h2, h3, h4 {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      font-size: clamp(2.8rem, 5vw, 4.2rem);
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      margin-bottom: 1.5rem;
+    }
+
+    h3 {
+      font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    h4 {
+      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+    }
+
+    p, li {
+      font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    /* Slide header bar */
+    .slide-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2.5vh;
+      flex-shrink: 0;
+    }
+
+    .slide-header h4 {
+      margin: 0;
+    }
+
+    .slide-header .tag {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--primary);
+      background: var(--accent-light);
+      padding: 0.35rem 0.9rem;
+      border-radius: 100px;
+    }
+
+    /* Slide content area */
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* Navigation */
+    .nav-controls {
+      position: fixed;
+      bottom: 2.5vh;
+      right: 3vw;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      font-size: 1.1rem;
+    }
+
+    .nav-btn:hover {
+      background: var(--primary);
+      color: var(--bg);
+      border-color: var(--primary);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .slide-counter {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      position: fixed;
+      bottom: 2.5vh;
+      left: 3vw;
+      z-index: 100;
+    }
+
+    .progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: var(--primary);
+      transition: width 0.4s ease;
+      z-index: 100;
+    }
+
+    /* Decorative elements */
+    .accent-line {
+      width: 60px;
+      height: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+      margin-bottom: 1.5rem;
+    }
+
+    .accent-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* ============================================================
+       LAYOUT 1: Cover / Title Slide
+       ============================================================ */
+    .layout-cover {
+      justify-content: center;
+      align-items: flex-start;
+      padding-left: 8vw;
+    }
+
+    .layout-cover h1 {
+      max-width: 55vw;
+      margin-bottom: 1.5rem;
+      line-height: 1.05;
+    }
+
+    .layout-cover .subtitle {
+      font-size: clamp(1rem, 1.5vw, 1.25rem);
+      color: var(--text-muted);
+      max-width: 40vw;
+      margin-bottom: 3rem;
+      font-weight: 400;
+    }
+
+    .layout-cover .meta {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 0.8rem;
+      color: var(--text-light);
+      letter-spacing: 0.05em;
+    }
+
+    .layout-cover .cover-decoration {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 35vw;
+      height: 100vh;
+      background: var(--accent-light);
+      clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+    }
+
+    .layout-cover .cover-dots {
+      position: absolute;
+      bottom: 12vh;
+      right: 8vw;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      opacity: 0.25;
+    }
+
+    .layout-cover .cover-dots .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+
+    /* ============================================================
+       LAYOUT 2: Agenda / Table of Contents
+       ============================================================ */
+    .layout-agenda .agenda-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 1rem 3rem;
+      margin-top: 1rem;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .agenda-item {
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+      padding: 1rem 1.2rem;
+      border-radius: 12px;
+      transition: background 0.2s ease;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .agenda-item:hover {
+      background: var(--card-bg);
+    }
+
+    .agenda-num {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+      min-width: 36px;
+    }
+
+    .agenda-item h3 {
+      margin-bottom: 0.3rem;
+      font-size: clamp(1rem, 1.4vw, 1.2rem);
+    }
+
+    .agenda-item p {
+      font-size: clamp(0.8rem, 1vw, 0.95rem);
+      line-height: 1.5;
+    }
+
+    /* ============================================================
+       LAYOUT 3: Key Metrics (3 large callouts)
+       Cards size to their content; the row centers vertically
+       inside the remaining slide-content area.
+       ============================================================ */
+    .layout-metrics .slide-content {
+      justify-content: flex-start;
+    }
+
+    .layout-metrics .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+      align-items: stretch;
+    }
+
+    .metric-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      padding: 1.5rem 1.6rem;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--card-bg);
+    }
+
+    .metric-card .metric-value {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: clamp(2.2rem, 3.4vw, 3rem);
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .metric-card .metric-label {
+      font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .metric-card .metric-desc {
+      font-size: clamp(0.78rem, 0.95vw, 0.9rem);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .metric-card .metric-supports {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      margin: 0.2rem 0 0;
+      padding: 0.7rem 0 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .metric-card .metric-supports li {
+      font-size: clamp(0.75rem, 0.9vw, 0.85rem);
+      color: var(--text-muted);
+      padding-left: 1rem;
+      position: relative;
+      line-height: 1.45;
+    }
+
+    .metric-card .metric-supports li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text-light);
+    }
+
+    .metric-card .metric-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-top: 0.3rem;
+    }
+
+    .metric-change.positive { color: #059669; }
+    .metric-change.negative { color: #dc2626; }
+
+    /* ============================================================
+       LAYOUT 4: Data Dashboard (6 stat grid)
+       Cells have natural height with stat at top + name + small
+       context line. Grid is auto-sized; the row stays in the upper
+       portion of slide-content with the bottom-padding reserved
+       for nav chrome.
+       ============================================================ */
+    .layout-dashboard .slide-content {
+      justify-content: flex-start;
+    }
+
+    .layout-dashboard .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .stat-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 1.4rem 1.5rem;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    .stat-cell .stat-top {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .stat-cell .stat-num {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .stat-cell .stat-unit {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .stat-cell .stat-name {
+      font-size: clamp(0.85rem, 1vw, 0.95rem);
+      color: var(--text);
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
+    .stat-cell .stat-context {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      line-height: 1.4;
+      padding-top: 0.4rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ============================================================
+       LAYOUT 5: Two Column Split
+       Left = numbered insight list, Right = pull-quote + supporting
+       stats. Both columns size to their content with natural rhythm
+       (gap-based spacing, no forced height-distribution).
+       ============================================================ */
+    .layout-split .slide-content {
+      justify-content: flex-start;
+    }
+
+    .layout-split .split-body {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 3.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .split-left, .split-right {
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+
+    .split-right {
+      padding-left: 2.5rem;
+      border-left: 2px solid var(--border);
+    }
+
+    .insight-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      margin: 0;
+      counter-reset: insight;
+    }
+
+    .insight-list li {
+      position: relative;
+      padding-left: 2.6rem;
+      font-size: clamp(0.88rem, 1.05vw, 1rem);
+      color: var(--text);
+      line-height: 1.55;
+      counter-increment: insight;
+    }
+
+    .insight-list li::before {
+      content: counter(insight, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: 0.05em;
+      line-height: 1.7;
+    }
+
+    .split-highlight {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: clamp(1.15rem, 1.55vw, 1.5rem);
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.4;
+      padding: 1.3rem 1.5rem;
+      background: var(--accent-light);
+      border-radius: 12px;
+      border-left: 4px solid var(--primary);
+    }
+
+    .split-highlight cite {
+      display: block;
+      margin-top: 0.7rem;
+      font-style: normal;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .mini-stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      padding-top: 0.4rem;
+    }
+
+    .mini-stat {
+      padding: 0.9rem 1rem;
+      border-radius: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    .mini-stat .mini-val {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .mini-stat .mini-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+      line-height: 1.35;
+    }
+
+    /* ============================================================
+       LAYOUT 6: Horizontal Bar Ranking
+       ============================================================ */
+    .layout-bars .bars-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-top: 0.5rem;
+    }
+
+    .bar-item {
+      display: grid;
+      grid-template-columns: minmax(180px, 30%) 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.6rem 0;
+    }
+
+    .bar-label {
+      font-size: clamp(0.8rem, 1.1vw, 1rem);
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.3;
+    }
+
+    .bar-track {
+      height: 28px;
+      background: var(--accent-light);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 6px;
+      transition: width 0.8s ease;
+    }
+
+    .bar-pct {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--primary);
+      min-width: 45px;
+      text-align: right;
+    }
+
+    .bar-note {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 0.2rem;
+    }
+
+    /* ============================================================
+       LAYOUT 7: Quote / Highlight
+       ============================================================ */
+    .layout-quote {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .layout-quote .quote-mark {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 8rem;
+      font-weight: 700;
+      color: var(--primary);
+      opacity: 0.15;
+      line-height: 0.5;
+      margin-bottom: 1rem;
+    }
+
+    .layout-quote blockquote {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+      font-weight: 500;
+      line-height: 1.35;
+      color: var(--text);
+      max-width: 65vw;
+      margin-bottom: 2rem;
+    }
+
+    .layout-quote .quote-source {
+      font-size: clamp(0.85rem, 1.1vw, 1rem);
+      color: var(--text-muted);
+    }
+
+    .layout-quote .quote-source strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .layout-quote .quote-decoration {
+      position: absolute;
+      top: 10vh;
+      left: 5vw;
+      width: 80px;
+      height: 80px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+    }
+
+    .layout-quote .quote-decoration-2 {
+      position: absolute;
+      bottom: 12vh;
+      right: 6vw;
+      width: 60px;
+      height: 60px;
+      background: var(--accent-light);
+      border-radius: 50%;
+    }
+
+    /* ============================================================
+       LAYOUT 8: Timeline / Process Flow
+       ============================================================ */
+    .layout-timeline .timeline-track {
+      display: flex;
+      gap: 1.5rem;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+
+    .timeline-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .timeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 28px;
+      right: -0.75rem;
+      width: 1.5rem;
+      height: 2px;
+      background: var(--border);
+    }
+
+    .step-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .timeline-step:nth-child(2) .step-circle { opacity: 0.85; }
+    .timeline-step:nth-child(3) .step-circle { opacity: 0.7; }
+    .timeline-step:nth-child(4) .step-circle { opacity: 0.55; }
+
+    .step-title {
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    .step-desc {
+      font-size: clamp(0.75rem, 1vw, 0.9rem);
+      color: var(--text-muted);
+      line-height: 1.5;
+      max-width: 220px;
+    }
+
+    /* ============================================================
+       LAYOUT 9: Detailed Analysis (bullets with sub-items)
+       ============================================================ */
+    .layout-detail .detail-body {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem 3rem;
+      flex: 1;
+      margin-top: 0.5rem;
+      overflow: hidden;
+    }
+
+    .detail-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .detail-block {
+      padding: 1rem 1.2rem;
+      border-radius: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    .detail-block h3 {
+      font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+      margin-bottom: 0.6rem;
+      color: var(--text);
+    }
+
+    .detail-block ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .detail-block ul li {
+      position: relative;
+      padding-left: 1.1rem;
+      padding-bottom: 0.4rem;
+      font-size: clamp(0.78rem, 1vw, 0.9rem);
+      line-height: 1.5;
+    }
+
+    .detail-block ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.55rem;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .detail-block ul li:last-child {
+      padding-bottom: 0;
+    }
+
+    /* ============================================================
+       LAYOUT 10: Closing / CTA
+       ============================================================ */
+    .layout-closing {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .layout-closing h1 {
+      margin-bottom: 1rem;
+    }
+
+    .layout-closing .closing-sub {
+      font-size: clamp(1rem, 1.5vw, 1.3rem);
+      color: var(--text-muted);
+      max-width: 45vw;
+      margin-bottom: 2.5rem;
+    }
+
+    .layout-closing .cta-btn {
+      display: inline-block;
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--bg);
+      background: var(--primary);
+      padding: 0.9rem 2.2rem;
+      border-radius: 100px;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .layout-closing .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+    }
+
+    .layout-closing .closing-contact {
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    .layout-closing .closing-decoration {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 500px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .layout-closing .closing-decoration-2 {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 360px;
+      height: 360px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    /* Keyboard hint */
+    .keyboard-hint {
+      position: fixed;
+      bottom: 2.5vh;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: var(--text-light);
+      z-index: 100;
+      opacity: 0.6;
+    }
+
+    /* Responsive adjustments for very small heights */
+    @media (max-height: 700px) {
+      .slide { padding: 2.5vh 3vw; }
+      .layout-agenda .agenda-grid { gap: 0.8rem 2rem; }
+      .agenda-item { padding: 0.8rem; }
+      .metric-card { padding: 1rem; }
+      .layout-bars .bars-container { gap: 0.5rem; }
+      .bar-item { padding: 0.4rem 0; }
+      .detail-block { padding: 0.8rem 1rem; }
+    }
+  
+  </style>
+</head>
+<body>
+  <div class="deck">
+<!-- SLIDE 1: Cover -->
+<div class="slide layout-cover active">
+  <div class="cover-decoration"></div>
+  <div class="cover-dots">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+  <div class="accent-line"></div>
+  <h1>AI-APS 排程如何切入<br>智能製造深水區</h1>
+  <p class="subtitle">從人工經驗到智能尋優，實現集團利潤最優與多工廠協同</p>
+  <p class="meta">2026 年 5 月 &nbsp;&middot;&nbsp; 製造領域 ISV 賦能專場</p>
+</div>
+
+<!-- SLIDE 2: Agenda -->
+<div class="slide layout-agenda">
+  <div class="slide-header">
+    <h4>議程</h4>
+    <span class="tag">Overview</span>
+  </div>
+  <div class="slide-content">
+    <div class="accent-line"></div>
+    <div class="agenda-grid">
+      <div class="agenda-item">
+        <span class="agenda-num">01</span>
+        <div>
+          <h3>APS 大單：索通集團多工廠協同方案剖析</h3>
+          <p>業務現狀、集團層規劃、工廠層排程、實施方案</p>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <span class="agenda-num">02</span>
+        <div>
+          <h3>售前快速響應：APS 專案客戶需求實戰技巧</h3>
+          <p>YS 標準版 POC 模型、快速交付 Demo 系統</p>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <span class="agenda-num">03</span>
+        <div>
+          <h3>ESG 雙碳管理：如何幫助企業雙碳合規</h3>
+          <p>政策驅動、IMPACTs 解決方案、行業案例</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3: Key Metrics -->
+<div class="slide layout-metrics">
+  <div class="slide-header">
+    <h4>業務現狀</h4>
+    <span class="tag">公司概況</span>
+  </div>
+  <div class="slide-content">
+    <h2>索通發展 — 從單廠到集團的排程挑戰</h2>
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-value">6+</div>
+        <div class="metric-label">分廠協同</div>
+        <div class="metric-desc">嘉峪關、雲南、湖北、隴西、山東、重慶等多家工廠</div>
+        <ul class="metric-supports">
+          <li>各廠產能、工藝、成本差異大</li>
+          <li>統一排程難度極高</li>
+          <li>原料與成品跨廠調配</li>
+        </ul>
+        <div class="metric-change negative"><span>&uarr;</span> 多廠協同挑戰</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">3 重</div>
+        <div class="metric-label">排程約束</div>
+        <div class="metric-desc">利潤、產能、交期三大目標難以同時平衡</div>
+        <ul class="metric-supports">
+          <li>人工經驗為主的主觀決策</li>
+          <li>無法量化利潤最優解</li>
+          <li>應對突發訂單能力弱</li>
+        </ul>
+        <div class="metric-change negative"><span>&darr;</span> 被動響應現狀</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">30%</div>
+        <div class="metric-label">效率提升空間</div>
+        <div class="metric-desc">從人工排產轉向智能尋優的潛在效率增益</div>
+        <ul class="metric-supports">
+          <li>減少重複調研與溝通</li>
+          <li>全局優化替代局部最優</li>
+          <li>數據驅動替代經驗驅動</li>
+        </ul>
+        <div class="metric-change positive"><span>&uarr;</span> 智能排程紅利</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: Split - Before vs After -->
+<div class="slide layout-split">
+  <div class="slide-header">
+    <h4>轉型目標</h4>
+    <span class="tag">Before &amp; After</span>
+  </div>
+  <div class="slide-content">
+    <h2>從被動響應到智能尋優</h2>
+    <div class="split-body">
+      <div class="split-left">
+        <h3 style="color:var(--text-muted);margin-bottom:1rem;">舊：人工排產模式</h3>
+        <ul class="insight-list">
+          <li>被動響應交期，利潤難以平衡</li>
+          <li>各廠獨立排產，無全局視角</li>
+          <li>應對突發訂單能力弱</li>
+          <li>依賴老師傅經驗，難以沉澱</li>
+          <li>數據零散，報表滯後</li>
+        </ul>
+      </div>
+      <div class="split-right">
+        <h3 style="color:var(--primary);margin-bottom:1rem;">新：智能優化排程</h3>
+        <div class="split-highlight">
+          以智能驅動全域優化<br>
+          <cite>目標：保交付 &amp; 利潤最優</cite>
+        </div>
+        <div class="mini-stat-row">
+          <div class="mini-stat">
+            <div class="mini-val">全域</div>
+            <div class="mini-label">利潤最優</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val">精細</div>
+            <div class="mini-label">工序級排程</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val">閉環</div>
+            <div class="mini-label">計劃-執行-回饋</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: Timeline - Production Process -->
+<div class="slide layout-timeline">
+  <div class="slide-header">
+    <h4>業務現狀</h4>
+    <span class="tag">生產工藝流程</span>
+  </div>
+  <div class="slide-content">
+    <h2>預焙陽極生產全流程</h2>
+    <div class="timeline-track">
+      <div class="timeline-step">
+        <div class="step-circle">1</div>
+        <div class="step-title">石油焦<br>採購</div>
+        <div class="step-desc">多家供貨商、價格差異、運輸成本</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-circle">2</div>
+        <div class="step-title">煅燒</div>
+        <div class="step-desc">高溫處理提升電導率</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-circle">3</div>
+        <div class="step-title">混捏</div>
+        <div class="step-desc">原料配比與粘結劑混合</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-circle">4</div>
+        <div class="step-title">成型</div>
+        <div class="step-desc">壓製為指定塊型尺寸</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-circle">5</div>
+        <div class="step-title">焙燒</div>
+        <div class="step-desc">高溫燒結固化最終成品</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6: Bar Chart -->
+<div class="slide layout-bars">
+  <div class="slide-header">
+    <h4>排程約束</h4>
+    <span class="tag">集團層</span>
+  </div>
+  <div class="slide-content">
+    <h2>集團層統一規劃 — 六大約束條件</h2>
+    <div class="bars-container">
+      <div class="bar-item">
+        <div class="bar-label">利潤最優</div>
+        <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+        <div class="bar-pct">核心</div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-label">產能約束</div>
+        <div class="bar-track"><div class="bar-fill" style="width:95%"></div></div>
+        <div class="bar-pct">95%</div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-label">交期約束</div>
+        <div class="bar-track"><div class="bar-fill" style="width:90%"></div></div>
+        <div class="bar-pct">90%</div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-label">定向分配</div>
+        <div class="bar-track"><div class="bar-fill" style="width:85%"></div></div>
+        <div class="bar-pct">85%</div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-label">工藝路線</div>
+        <div class="bar-track"><div class="bar-fill" style="width:80%"></div></div>
+        <div class="bar-pct">80%</div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-label">原料成本</div>
+        <div class="bar-track"><div class="bar-fill" style="width:75%"></div></div>
+        <div class="bar-pct">75%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: Dashboard -->
+<div class="slide layout-dashboard">
+  <div class="slide-header">
+    <h4>集團層統一規劃</h4>
+    <span class="tag">全域優化</span>
+  </div>
+  <div class="slide-content">
+    <h2>多工廠協同排產 — 六大關鍵指標</h2>
+    <div class="stats-grid">
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">最優</span><span class="stat-unit">目標</span></div>
+        <div class="stat-name">集團利潤最優</div>
+        <div class="stat-context">全局優化模型統一計算</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">平衡</span><span class="stat-unit">目標</span></div>
+        <div class="stat-name">多廠產能負荷平衡</div>
+        <div class="stat-context">避免部分工廠過載</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">90%</span><span class="stat-unit">覆蓋</span></div>
+        <div class="stat-name">客戶持續發貨時間窗</div>
+        <div class="stat-context">支持多訂單並行排產</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">統籌</span><span class="stat-unit">模式</span></div>
+        <div class="stat-name">原料集中採購</div>
+        <div class="stat-context">降低總採購成本</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">分散</span><span class="stat-unit">模式</span></div>
+        <div class="stat-name">產品分散發貨</div>
+        <div class="stat-context">根據工廠產能與客戶就近</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">自動</span><span class="stat-unit">分配</span></div>
+        <div class="stat-name">訂單智能分配</div>
+        <div class="stat-context">交期、成本、產能綜合權衡</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8: Split - Two Layer Architecture -->
+<div class="slide layout-split">
+  <div class="slide-header">
+    <h4>解決方案架構</h4>
+    <span class="tag">兩層計劃體系</span>
+  </div>
+  <div class="slide-content">
+    <h2>集團層 + 工廠層，相輔相成</h2>
+    <div class="split-body">
+      <div class="split-left">
+        <h3 style="color:var(--primary);margin-bottom:1rem;">集團層多工廠協同計劃</h3>
+        <ul class="insight-list">
+          <li>基於全域優化算法的中期計劃（季/月）</li>
+          <li>關注「做什麼、做多少、在哪個廠做」</li>
+          <li>以利潤最優為目標</li>
+          <li>綜合考慮交期、產能、原料成本、運輸成本</li>
+          <li>輸出：各工廠生產任務建議 + 原料採購建議</li>
+        </ul>
+      </div>
+      <div class="split-right">
+        <h3 style="color:var(--primary);margin-bottom:1rem;">工廠層詳細排程</h3>
+        <div class="split-highlight">
+          將集團計劃轉化為工序級作業指令<br>
+          <cite>考慮設備、模具、換型、連批</cite>
+        </div>
+        <div class="mini-stat-row">
+          <div class="mini-stat">
+            <div class="mini-val">約束</div>
+            <div class="mini-label">規劃演算法</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val">週/日</div>
+            <div class="mini-label">短期計劃頻率</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val">70%</div>
+            <div class="mini-label">集團層包含工廠邏輯</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9: Metrics - Implementation -->
+<div class="slide layout-metrics">
+  <div class="slide-header">
+    <h4>實施方案</h4>
+    <span class="tag">時間 &amp; 成本</span>
+  </div>
+  <div class="slide-content">
+    <h2>同步實施 — 時間最優、成本最低</h2>
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-value">5.5 個月</div>
+        <div class="metric-label">同步實施</div>
+        <div class="metric-desc">集團層與工廠層並行推進，一次調研、一次實施</div>
+        <ul class="metric-supports">
+          <li>集團層調研 → 同步工廠調研</li>
+          <li>數據一次採集、雙層共用</li>
+          <li>首選方案：時間最短</li>
+        </ul>
+        <div class="metric-change positive"><span>&uarr;</span> 推薦方案</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">8 個月</div>
+        <div class="metric-label">分步實施</div>
+        <div class="metric-desc">集團層先行 → 工廠層後續，整體週期最長</div>
+        <ul class="metric-supports">
+          <li>集團層先行 4 個月</li>
+          <li>工廠層跟進 4 個月</li>
+          <li>存在 2.5 個月重複工作</li>
+        </ul>
+        <div class="metric-change negative"><span>&darr;</span> 成本較高</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">-30%</div>
+        <div class="metric-label">效率提升</div>
+        <div class="metric-desc">同步實施相比分步節省 2.5 個月，整體進度加快 30%</div>
+        <ul class="metric-supports">
+          <li>減少重複調研與數據採集</li>
+          <li>節省人力與顧問費用</li>
+          <li>數據一致性好</li>
+        </ul>
+        <div class="metric-change positive"><span>&uarr;</span> 顯著節省</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 10: Dashboard - Core Values -->
+<div class="slide layout-dashboard">
+  <div class="slide-header">
+    <h4>索通解決方案核心價值</h4>
+    <span class="tag">五大價值</span>
+  </div>
+  <div class="slide-content">
+    <h2>從數據到決策，從單廠到集團</h2>
+    <div class="stats-grid">
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">即時</span><span class="stat-unit">可視</span></div>
+        <div class="stat-name">決策可視化</div>
+        <div class="stat-context">利潤、交期、產能多維數據即時呈現</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">透明</span><span class="stat-unit">協同</span></div>
+        <div class="stat-name">協同透明化</div>
+        <div class="stat-context">多工廠物料、產能一目了然</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">穿透</span><span class="stat-unit">追蹤</span></div>
+        <div class="stat-name">執行可追溯</div>
+        <div class="stat-context">訂單穿透至生產工序，進度可追蹤</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">預警</span><span class="stat-unit">主動</span></div>
+        <div class="stat-name">風險預警</div>
+        <div class="stat-context">交期風險、產能超載自動預警</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">沉澱</span><span class="stat-unit">標準化</span></div>
+        <div class="stat-name">經驗沉澱</div>
+        <div class="stat-context">老師傅經驗轉化為算法規則</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">整合</span><span class="stat-unit">無縫</span></div>
+        <div class="stat-name">系統整合 (BIP)</div>
+        <div class="stat-context">與用友 BIP 一體化平台深度對接</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 11: Quote -->
+<div class="slide layout-quote">
+  <div class="quote-decoration"></div>
+  <div class="quote-decoration-2"></div>
+  <div class="quote-mark">&ldquo;</div>
+  <blockquote>10 天開發 Demo 系統<br>從需求到可演示原型，快速驗證 APS 方案價值</blockquote>
+  <p class="quote-source"><strong>快速驗證</strong> &mdash; 降低決策風險，加速專案推進</p>
+</div>
+
+<!-- SLIDE 12: Cover mini - Pre-sales -->
+<div class="slide layout-cover active">
+  <div class="cover-decoration"></div>
+  <div class="cover-dots">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+  <div class="accent-line"></div>
+  <h1>售前快速響應</h1>
+  <p class="subtitle">YS 標準版 — 以客戶資料建立標準版 POC 模型</p>
+  <p class="meta">第二章 &nbsp;&middot;&nbsp; 客戶需求實戰技巧</p>
+</div>
+
+<!-- SLIDE 13: Split - ESG -->
+<div class="slide layout-split">
+  <div class="slide-header">
+    <h4>ESG 雙碳管理</h4>
+    <span class="tag">政策驅動</span>
+  </div>
+  <div class="slide-content">
+    <h2>政策與市場雙重驅動</h2>
+    <div class="split-body">
+      <div class="split-left">
+        <h3 style="color:var(--text-muted);margin-bottom:1rem;">合規壓力</h3>
+        <ul class="insight-list">
+          <li>EU CBAM 碳關稅 2027 年全面實施</li>
+          <li>CSRD &amp; ESRS 強制披露範圍 1-3</li>
+          <li>2030 碳達峰、2060 碳中和</li>
+          <li>全國碳市場納入八大行業</li>
+          <li>50+ 重點產品碳足迹標準</li>
+        </ul>
+      </div>
+      <div class="split-right">
+        <h3 style="color:var(--primary);margin-bottom:1rem;">IMPACTs 雙碳智能管理</h3>
+        <div class="split-highlight">
+          數據採集 → 智能核算 → 清冊報告 → 碳資產管理<br>
+          <cite>物聯網實時監測 + AI 智能算法</cite>
+        </div>
+        <div class="mini-stat-row">
+          <div class="mini-stat">
+            <div class="mini-val">ISO</div>
+            <div class="mini-label">14064 合規</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val">GHG</div>
+            <div class="mini-label">Protocol 標準</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val">1-3</div>
+            <div class="mini-label">全範圍覆蓋</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 14: Timeline - Carbon Neutral Steps -->
+<div class="slide layout-timeline">
+  <div class="slide-header">
+    <h4>企業碳中和</h4>
+    <span class="tag">實施步驟</span>
+  </div>
+  <div class="slide-content">
+    <h2>從摸清碳家底到實現碳中和</h2>
+    <div class="timeline-track">
+      <div class="timeline-step">
+        <div class="step-circle">1</div>
+        <div class="step-title">制定<br>碳目標</div>
+        <div class="step-desc">確定減排路徑與目標</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-circle">2</div>
+        <div class="step-title">摸清<br>碳家底</div>
+        <div class="step-desc">盤查全廠排放數據</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-circle">3</div>
+        <div class="step-title">評價<br>碳績效</div>
+        <div class="step-desc">建立核算體系</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-circle">4</div>
+        <div class="step-title">執行<br>碳減排</div>
+        <div class="step-desc">技改、優化、替代能源</div>
+      </div>
+      <div class="timeline-step">
+        <div class="step-circle">5</div>
+        <div class="step-title">實現<br>碳中和</div>
+        <div class="step-desc">抵消排放達成淨零</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 15: Dashboard - IMPACTs Industries -->
+<div class="slide layout-dashboard">
+  <div class="slide-header">
+    <h4>IMPACTs 適用行業</h4>
+    <span class="tag">行業覆蓋</span>
+  </div>
+  <div class="slide-content">
+    <h2>全面覆蓋高排放重點行業</h2>
+    <div class="stats-grid">
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">重</span></div>
+        <div class="stat-name">重工業</div>
+        <div class="stat-context">鋼鐵、有色、化工</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">電</span></div>
+        <div class="stat-name">電力能源</div>
+        <div class="stat-context">發電、輸配電</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">運</span></div>
+        <div class="stat-name">交通運輸</div>
+        <div class="stat-context">物流、航運</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">建</span></div>
+        <div class="stat-name">建築房地產</div>
+        <div class="stat-context">建材、地產開發</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">電</span></div>
+        <div class="stat-name">電子信息</div>
+        <div class="stat-context">電子、半導體</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">零</span></div>
+        <div class="stat-name">零售服務業</div>
+        <div class="stat-context">供應鏈可持續</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">農</span></div>
+        <div class="stat-name">農林牧漁業</div>
+        <div class="stat-context">農牧碳管理</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">藥</span></div>
+        <div class="stat-name">醫藥化工</div>
+        <div class="stat-context">製藥、精細化工</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-top"><span class="stat-num">園</span></div>
+        <div class="stat-name">園區及公共機構</div>
+        <div class="stat-context">產業園區碳管理</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 16: Closing -->
+<div class="slide layout-closing">
+  <div class="closing-decoration"></div>
+  <div class="closing-decoration-2"></div>
+  <div class="accent-line" style="margin: 0 auto 1.5rem;"></div>
+  <h1>感謝聆聽</h1>
+  <p class="closing-sub">用友科技 &nbsp;&middot;&nbsp; 製造領域 ISV 生態</p>
+  <a href="#" class="cta-btn" style="background: var(--gold);">聯絡我們</a>
+  <p class="closing-contact">www.yonyou.com &nbsp;&middot;&nbsp; ISV@yonyou.com</p>
+</div>
+  </div>
+
+  <div class="slide-counter"><span id="current">1</span> / <span id="total">16</span></div>
+  <div class="keyboard-hint">方向鍵或空白鍵切換</div>
+  <div class="progress-bar" id="progress"></div>
+  <div class="nav-controls">
+    <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" aria-label="上一頁">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)" aria-label="下一頁">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </button>
+  </div>
+
+  <script>
+
+    const slides = document.querySelectorAll('.slide');
+    const currentEl = document.getElementById('current');
+    const totalEl = document.getElementById('total');
+    const progressEl = document.getElementById('progress');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    let current = 0;
+    const total = slides.length;
+    totalEl.textContent = total;
+
+    function updateSlide() {
+      slides.forEach((slide, i) => {
+        slide.classList.remove('active', 'prev');
+        if (i === current) {
+          slide.classList.add('active');
+        } else if (i < current) {
+          slide.classList.add('prev');
+        }
+      });
+      currentEl.textContent = current + 1;
+      progressEl.style.width = ((current + 1) / total * 100) + '%';
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === total - 1;
+    }
+
+    function changeSlide(dir) {
+      const next = current + dir;
+      if (next >= 0 && next < total) {
+        current = next;
+        updateSlide();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        changeSlide(1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        changeSlide(-1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        current = 0;
+        updateSlide();
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        current = total - 1;
+        updateSlide();
+      }
+    });
+
+    // Touch support
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    document.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 50) {
+        changeSlide(diff > 0 ? 1 : -1);
+      }
+    }, { passive: true });
+
+    updateSlide();
+  
+  </script>
+</body>
+</html>
