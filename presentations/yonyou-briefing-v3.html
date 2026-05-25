@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>用友產品推廣宣講會 | 區域經營 × 三合一產品方案</title>
+<meta name="description" content="滬蘇甬聯合經營模式 × APS/ESG/AI Agent 三合一產品方案">
+
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+<!-- Reveal.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.css">
+
+<!-- ═══════════════════════════════════════════════════════════
+     Shared — Commander-D design-tokens v7 + design system
+     (imported flat, no build step)
+     ═══════════════════════════════════════════════════════════ -->
+<link rel="stylesheet" href="../shared/design-tokens.css">
+<link rel="stylesheet" href="../shared/components.css">
+<link rel="stylesheet" href="../shared/color-systems.css">
+<link rel="stylesheet" href="../shared/animation-patterns.css">
+
+<!-- Yonyou Brand Overrides -->
+<style>
+/* ── Yonyou Brand ───────────────────────────────────────── */
+:root {
+  --brand: #1677ff;
+  --brand-2: #4096ff;
+  --brand-amber: #f59e0b;
+  --brand-rose: #f43f5e;
+  --r-background-color: #060a14;
+  --r-main-color: #f0f4f8;
+  --r-heading-color: #f0f4f8;
+  --r-link-color: #1677ff;
+  --r-selection-background-color: rgba(22,119,255,.3);
+}
+
+.light-theme {
+  --r-background-color: #f5f7fb;
+  --r-main-color: #0f172a;
+  --r-heading-color: #0f172a;
+  --r-link-color: #1557d0;
+  --r-selection-background-color: rgba(22,119,255,.2);
+}
+
+/* ── Yonyou Utilities ───────────────────────────────────── */
+.y-badge {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: .3rem .85rem;
+  border-radius: var(--radius-full);
+  display: inline-block;
+  margin-bottom: 1.5rem;
+}
+.y-badge-blue {
+  color: var(--brand-2);
+  border: 1px solid rgba(64,150,255,.35);
+  background: rgba(22,119,255,.08);
+}
+.y-badge-gold {
+  color: var(--brand-amber);
+  border: 1px solid rgba(245,158,11,.35);
+  background: rgba(245,158,11,.08);
+}
+.y-badge-rose {
+  color: var(--brand-rose);
+  border: 1px solid rgba(244,63,94,.35);
+  background: rgba(244,63,94,.08);
+}
+
+/* ── Divider ────────────────────────────────────────────── */
+.y-divider {
+  width: 56px; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--brand), var(--brand-2));
+  margin: .8rem 0; border: none;
+}
+
+/* ── Hero background ────────────────────────────────────── */
+.hero-bg {
+  background: radial-gradient(ellipse at 50% 40%, rgba(22,119,255,.12) 0%, transparent 70%) !important;
+}
+
+/* ── Section header ─────────────────────────────────────── */
+.section-header {
+  text-align: center !important;
+  align-items: center !important;
+  background: radial-gradient(ellipse at 50% 45%, rgba(22,119,255,.06) 0%, transparent 65%) !important;
+}
+
+/* ── Two-col ────────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: .8rem; }
+@media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── Step grid ──────────────────────────────────────────── */
+.step-grid { display: grid; gap: 1.2rem; grid-template-columns: repeat(3, 1fr); margin-top: .8rem; }
+@media (max-width: 640px) { .step-grid { grid-template-columns: 1fr; } }
+.step-item {
+  padding: 1.4rem 1.2rem;
+  border: var(--border); border-radius: var(--radius);
+  text-align: center; background: var(--bg);
+  transition: border-color var(--mid) var(--ease);
+}
+.step-item:hover { border-color: var(--border-hover); }
+.step-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: .85rem; margin-bottom: .7rem;
+}
+.step-item h4 { font-size: .88rem; font-weight: 700; color: var(--t1); margin-bottom: .3rem; }
+.step-item p { font-size: .73rem; color: var(--t3); line-height: 1.5; }
+
+/* ── Timeline ───────────────────────────────────────────── */
+.timeline { margin-top: 1.2rem; }
+.tl-item {
+  display: flex; gap: 1rem; align-items: flex-start;
+  padding: .7rem 0; border-bottom: var(--border);
+}
+.tl-item:last-child { border-bottom: none; }
+.tl-num {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--brand); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .78rem; font-weight: 800; margin-top: .15rem;
+}
+.tl-content h4 { font-size: .88rem; font-weight: 700; color: var(--t1); margin-bottom: .2rem; }
+.tl-content p { font-size: .78rem; color: var(--t3); }
+
+/* ── Map grid ───────────────────────────────────────────── */
+.map-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+@media (max-width: 640px) { .map-grid { grid-template-columns: 1fr; } }
+.map-card {
+  padding: 1.5rem; border: var(--border); border-radius: var(--radius);
+  background: var(--bg); text-align: center;
+  transition: border-color var(--mid) var(--ease);
+}
+.map-card:hover { border-color: var(--border-hover); }
+.map-card .city-icon { font-size: 2rem; margin-bottom: .5rem; }
+.map-card h4 { font-size: 1rem; font-weight: 800; color: var(--t1); margin-bottom: .3rem; }
+.map-card p { font-size: .78rem; color: var(--t3); line-height: 1.6; }
+
+/* ── CTA box ────────────────────────────────────────────── */
+.cta-box {
+  margin-top: 1.5rem; padding: 1.5rem 2rem;
+  border: 1px solid rgba(22,119,255,.25); border-radius: var(--radius-lg);
+  background: rgba(22,119,255,.04); text-align: center;
+}
+.cta-box p { color: var(--t2); font-size: .9rem; margin-bottom: .5rem; }
+.cta-box .y-highlight { font-size: 1.1rem; }
+
+/* ── Pill ───────────────────────────────────────────────── */
+.pill {
+  display: inline-block; padding: .4rem 1rem; border-radius: var(--radius-full);
+  border: 1px solid rgba(22,119,255,.25); background: rgba(22,119,255,.06);
+  font-size: .8rem; font-weight: 600; color: var(--brand-2); margin: .3rem .3rem 0 0;
+}
+.pill-grid { display: flex; flex-wrap: wrap; margin-top: .8rem; }
+
+/* ── Data bar ───────────────────────────────────────────── */
+.bar-chart { margin-top: 1.2rem; }
+.bar-row { display: flex; align-items: center; gap: .75rem; margin-bottom: .6rem; }
+.bar-label { flex: 0 0 120px; font-size: .78rem; color: var(--t2); text-align: right; }
+.bar-track { flex: 1; height: 20px; background: var(--surface-raised); border-radius: 6px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--brand), var(--brand-2)); display: flex; align-items: center; justify-content: flex-end; padding-right: .5rem; }
+.bar-val { font-size: .72rem; font-weight: 700; color: #fff; }
+
+/* ── Auto-Animate enhancement ───────────────────────────── */
+.reveal section[data-auto-animate] .tl-item {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+}
+.reveal section[data-auto-animate] .tl-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── KPI card ──────────────────────────────────────────── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1.2rem; }
+@media (max-width: 768px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+.kpi-card {
+  padding: 1.2rem; border-radius: var(--radius);
+  border: var(--border); background: var(--bg);
+  text-align: center; transition: border-color var(--fast) var(--ease);
+}
+.kpi-card:hover { border-color: var(--border-hover); }
+.kpi-card .kpi-icon { font-size: 1.8rem; margin-bottom: .5rem; }
+.kpi-card .kpi-val { font-size: 1.5rem; font-weight: 800; color: var(--t1); margin-bottom: .2rem; }
+.kpi-card .kpi-label { font-size: .75rem; color: var(--t3); }
+.kpi-card.kpi-teal { border-top: 3px solid var(--brand); }
+.kpi-card.kpi-violet { border-top: 3px solid var(--brand-2); }
+.kpi-card.kpi-amber { border-top: 3px solid var(--brand-amber); }
+.kpi-card.kpi-rose { border-top: 3px solid var(--brand-rose); }
+
+/* ── Case card enhanced ────────────────────────────────── */
+.case-card {
+  padding: 1.5rem; border-radius: var(--radius-lg);
+  border: var(--border); background: var(--bg);
+}
+.case-card .case-metric { font-size: 1.8rem; font-weight: 900; color: var(--brand); }
+.case-card .case-tag {
+  display: inline-block; font-size: .68rem; font-weight: 600;
+  padding: .2rem .6rem; border-radius: var(--radius-sm);
+  background: rgba(22,119,255,.1); color: var(--brand-2); margin-bottom: .5rem;
+}
+
+/* ── Section intro (hero + label) ──────────────────────── */
+.section-intro { text-align: center !important; align-items: center !important; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.js"></script>
+</head>
+<body>
+
+<!-- ARIA live region -->
+<div id="slide-announcer"
+     class="sr-only"
+     aria-live="polite"
+     aria-atomic="true"
+     style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)"></div>
+
+<!-- Theme Toggle -->
+<button class="theme-toggle" aria-label="切換深淺主題" title="切換主題 (Ctrl+T)">🌙</button>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ══════════════════════════════════════════════════════
+     01 — 開場：市場機會
+     ══════════════════════════════════════════════════════ -->
+<section class="s-hero hero-bg">
+  <div class="y-badge y-badge-blue fragment">用友產品推廣宣講會</div>
+  <h2 class="fragment">
+    滬蘇甬<br><span>數字化轉型窗口</span>
+  </h2>
+  <hr class="y-divider fragment">
+  <p class="fragment">
+    三大港口城市，三種產業結構，<br>同一個數字化機遇
+  </p>
+  <div class="num-grid fragment">
+    <div class="num-item">
+      <div class="num" data-target="900" data-suffix="+">0+</div>
+      <div class="label">跨國亞太總部<br><span class="y-subtle">上海陸家嘴 2024</span></div>
+    </div>
+    <div class="num-item">
+      <div class="num" data-target="2800" data-suffix="+">0+</div>
+      <div class="label">台商企業<br><span class="y-subtle">蘇州工業園區</span></div>
+    </div>
+    <div class="num-item">
+      <div class="num" data-target="13" data-suffix="億噸">0</div>
+      <div class="label">舟山港年吞吐<br><span class="y-subtle">全球第一港口</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     02 — 上海：金融與製造的十字路口
+     ══════════════════════════════════════════════════════ -->
+<section>
+  <div class="y-badge y-badge-blue fragment">市場機會 · 上海</div>
+  <h2 class="fragment"><span>上海</span>：金融與製造的十字路口</h2>
+  <hr class="y-divider fragment">
+  <div class="two-col">
+    <div>
+      <p class="fragment">
+        上海是中國跨國企業密度最高的城市。外資銀行總部佔全國 60%，金融城產值超過 <b>6,300 億元</b>。
+      </p>
+      <p class="fragment">
+        製造業同樣強勢：上海電氣、上汽集團等大型國企皆為用友 NC/NCC 深度客戶。
+        2026 年上海證監局 ESG 強制披露試點啟動——<b>數字化不是選項，是合規門檻</b>。
+      </p>
+    </div>
+    <div class="card spotlight fragment">
+      <span class="card-icon">🏙️</span>
+      <h4>上海的機會窗</h4>
+      <ul style="margin-top:.8rem;padding:0;list-style:none">
+        <li style="padding:.45rem 0;border-bottom:var(--border);font-size:.82rem;color:var(--t3);display:flex;gap:.5rem;align-items:flex-start">
+          <span class="dot"></span><span><b style="color:var(--t1)">外資 ESG 合規</b><br>CBAM 碳申報需求迫切</span>
+        </li>
+        <li style="padding:.45rem 0;border-bottom:var(--border);font-size:.82rem;color:var(--t3);display:flex;gap:.5rem;align-items:flex-start">
+          <span class="dot"></span><span><b style="color:var(--t1)">國企數位升級</b><br>NC/NCC 客戶擴容意願高</span>
+        </li>
+        <li style="padding:.45rem 0;font-size:.82rem;color:var(--t3);display:flex;gap:.5rem;align-items:flex-start">
+          <span class="dot"></span><span><b style="color:var(--t1)">供應鏈自動化</b><br>AI Agent 從被動查詢到主動執行</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     03 — 蘇州 & 寧波
+     ══════════════════════════════════════════════════════ -->
+<section>
+  <div class="y-badge y-badge-gold fragment">市場機會 · 蘇州 × 寧波</div>
+  <h2 class="fragment"><span>蘇州</span>×<span>寧波</span>：產能與出口的雙引擎</h2>
+  <hr class="y-divider fragment">
+  <div class="map-grid">
+    <div class="map-card fragment">
+      <div class="city-icon">🏭</div>
+      <h4>蘇州</h4>
+      <p>全球筆電 1/4 產能<br>精密製造產值超 8,000 億元<br>台商 2,800+ 家<br><b style="color:var(--brand)">排程優化剛需</b></p>
+    </div>
+    <div class="map-card fragment">
+      <div class="city-icon">⚓</div>
+      <h4>寧波</h4>
+      <p>舟山港年吞吐 &gt;13 億噸<br>集裝箱 &gt;3,500 萬 TEU<br>模具產能佔全國 30%<br><b style="color:var(--brand-amber)">CBAM 合規急迫</b></p>
+    </div>
+    <div class="map-card fragment">
+      <div class="city-icon">🤖</div>
+      <h4>三城聯動</h4>
+      <p>上海打樣 → 蘇州量產 → 寧波出海<br><br><b style="color:var(--t1)">用友 + 潤思<br>= 1+1 &gt; 2 的區域引擎</b></p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     03B — KPI Dashboard
+     ══════════════════════════════════════════════════════ -->
+<section data-auto-animate>
+  <div class="y-badge y-badge-blue fragment">KPI</div>
+  <h2 class="fragment"><span>四大戰線</span>· 並行推進</h2>
+  <hr class="y-divider fragment">
+  <p class="fragment">四個核心方向，每條線獨立可衡量、可複製</p>
+  <div class="kpi-grid fragment">
+    <div class="kpi-card kpi-teal">
+      <div class="kpi-icon">🔥</div>
+      <div class="kpi-val">97%</div>
+      <div class="kpi-label">排爐 OTD</div>
+      <div style="font-size:.68rem;color:var(--t3);margin-top:.3rem">蘇州 PCB 廠實證</div>
+    </div>
+    <div class="kpi-card kpi-violet">
+      <div class="kpi-icon">🌱</div>
+      <div class="kpi-val">2 億</div>
+      <div class="kpi-label">ESG 訂單保住</div>
+      <div style="font-size:.68rem;color:var(--t3);margin-top:.3rem">寧波模具 CBAM</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-icon">⚡</div>
+      <div class="kpi-val">14月</div>
+      <div class="kpi-label">AI Agent 回本</div>
+      <div style="font-size:.68rem;color:var(--t3);margin-top:.3rem">上海汽配集團</div>
+    </div>
+    <div class="kpi-card kpi-rose">
+      <div class="kpi-icon">🚀</div>
+      <div class="kpi-val">7×24</div>
+      <div class="kpi-label">DevOps 全自動</div>
+      <div style="font-size:.68rem;color:var(--t3);margin-top:.3rem">跨 Squad 協作</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     04 — 產品定位：三合一方案
+     ══════════════════════════════════════════════════════ -->
+<section>
+  <div class="section-intro">
+    <div class="y-badge y-badge-blue fragment">產品整合</div>
+    <h2 class="fragment"><span>APS × ESG × AI Agent</span><br>三合一方案</h2>
+    <hr class="y-divider fragment">
+  </div>
+  <p class="fragment" style="max-width:680px;margin:0 auto;text-align:center">
+    用友 ERP 數據 → 潤思補足缺口 → 客戶價值閉環
+  </p>
+  <div class="grid grid-3 fragment" style="margin-top:2rem">
+    <div class="card">
+      <span class="card-icon">📅</span>
+      <h4>APS 智慧排程</h4>
+      <p>用友 ERP 的自然延伸<br>3 週試點 → 成交<br>精確到分鐘的生產節拍</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">🌱</span>
+      <h4>ESG 碳管理</h4>
+      <p>用友財務數據 → 碳排放計算<br>CBAM 合規報告自動化<br>外貿客戶剛需</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">🧠</span>
+      <h4>AI Agent</h4>
+      <p>用友數據基礎 → 潤思行業 AI<br>從被動查詢到主動執行<br>供應鏈自動化平台</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     05 — 案例一：蘇州台資 PCB 廠 — APS 排程協同
+     ══════════════════════════════════════════════════════ -->
+<section data-auto-animate>
+  <div class="y-badge y-badge-gold fragment">案例故事 · 01</div>
+  <h2 class="fragment"><span>蘇州台資 PCB 廠</span><br>APS 排程 — 用友 ERP 的自然延伸</h2>
+  <hr class="y-divider fragment">
+  <div class="two-col fragment">
+    <div class="card" style="margin-bottom:0">
+      <span class="card-icon">🏭</span>
+      <h4>客戶背景</h4>
+      <p style="font-size:.82rem;color:var(--t3);margin-top:.4rem">蘇州工業園區 PCB 廠<br>月產 50 萬片 · 用友 U8 老客戶</p>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <span class="card-icon">⚠️</span>
+      <h4>痛點</h4>
+      <p style="font-size:.82rem;color:var(--t3);margin-top:.4rem">換線 &gt;2h/次 · 急單插單靠電話<br>OTD 僅 85%，延遲交貨 15%</p>
+    </div>
+  </div>
+  <div class="timeline">
+    <div class="tl-item fragment">
+      <div class="tl-num">1</div>
+      <div class="tl-content">
+        <h4>用友 AE 發現機會</h4>
+        <p>例行拜訪發現客戶排程仍靠 Excel → 瓶頸凸顯</p>
+      </div>
+    </div>
+    <div class="tl-item fragment">
+      <div class="tl-num">2</div>
+      <div class="tl-content">
+        <h4>潤思進場診斷</h4>
+        <p>3 天現場評估 → 產出排程優化方案 + ROI 估算</p>
+      </div>
+    </div>
+    <div class="tl-item fragment">
+      <div class="tl-num">3</div>
+      <div class="tl-content">
+        <h4>3 週試點驗證</h4>
+        <p>最小可行方案上線 → <b style="color:var(--brand)">OTD 85% → 97%</b> · <b style="color:var(--brand-2)">換線 -40%</b></p>
+      </div>
+    </div>
+    <div class="tl-item fragment">
+      <div class="tl-num">4</div>
+      <div class="tl-content">
+        <h4>規模複製</h4>
+        <p>試點成功 → 集團全廠部署 → 用友生態合作模式確立</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fragment" style="margin-top:1.2rem;display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;font-size:.72rem">
+    <div style="padding:.7rem .9rem;border:var(--border);border-radius:var(--radius);background:rgba(22,119,255,.04)"><span style="color:var(--t3)">📋 案例</span><br><b style="color:var(--brand)">PCB排程優化</b></div>
+    <div style="padding:.7rem .9rem;border:var(--border);border-radius:var(--radius);background:rgba(22,119,255,.04)"><span style="color:var(--t3)">📈 效益</span><br><b style="color:var(--brand-2)">OTD +12pp · 換線-40%</b></div>
+    <div style="padding:.7rem .9rem;border:var(--border);border-radius:var(--radius);background:rgba(22,119,255,.04)"><span style="color:var(--t3)">💰 ROI</span><br><b style="color:var(--brand-amber)">3週試點 · 全廠複製</b></div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     06 — 案例二：寧波北侖模具廠 — ESG/CBAM 合規
+     ══════════════════════════════════════════════════════ -->
+<section data-auto-animate>
+  <div class="y-badge y-badge-rose fragment">案例故事 · 02</div>
+  <h2 class="fragment"><span>寧波北侖模具廠</span><br>CBAM 合規 — 從危機到機會</h2>
+  <hr class="y-divider fragment">
+  <div class="two-col fragment">
+    <div class="card" style="margin-bottom:0">
+      <span class="card-icon">⚓</span>
+      <h4>客戶背景</h4>
+      <p style="font-size:.82rem;color:var(--t3);margin-top:.4rem">寧波北侖汽車模具廠<br>年出口 &gt;2 億 · 用友 YonSuite 客戶</p>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <span class="card-icon">🚨</span>
+      <h4>危機</h4>
+      <p style="font-size:.82rem;color:var(--t3);margin-top:.4rem">歐盟 CBAM 碳關稅：<br>無碳足跡數據 → 斷單風險</p>
+    </div>
+  </div>
+  <div class="timeline">
+    <div class="tl-item fragment">
+      <div class="tl-num">1</div>
+      <div class="tl-content">
+        <h4>危機觸發</h4>
+        <p>歐盟客戶通知：2026 年起無碳足跡報告停止下單</p>
+      </div>
+    </div>
+    <div class="tl-item fragment">
+      <div class="tl-num">2</div>
+      <div class="tl-content">
+        <h4>用友顧問介入</h4>
+        <p>YonSuite 季度回訪中發現 CBAM 需求 → 推薦潤思 CRIS</p>
+      </div>
+    </div>
+    <div class="tl-item fragment">
+      <div class="tl-num">3</div>
+      <div class="tl-content">
+        <h4>聯合方案上線</h4>
+        <p>YonSuite 能源會計 + CRIS 碳足跡引擎 → <b style="color:var(--brand)">3 個月完成合規</b></p>
+      </div>
+    </div>
+    <div class="tl-item fragment">
+      <div class="tl-num">4</div>
+      <div class="tl-content">
+        <h4>保住訂單</h4>
+        <p><b style="color:var(--brand-amber)">2 億出口訂單</b>保住 · 聯合經營模式確立</p>
+      </div>
+    </div>
+  </div>
+  <div class="cta-box fragment" style="margin-top:1.5rem">
+    <p>CBAM 不是產品功能，是客戶的生存問題。</p>
+    <div class="y-highlight">用友的數據 + 潤思的引擎 = 客戶活下去</div>
+  </div>
+
+  <div class="fragment" style="margin-top:1.2rem;display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;font-size:.72rem">
+    <div style="padding:.7rem .9rem;border:var(--border);border-radius:var(--radius);background:rgba(22,119,255,.04)"><span style="color:var(--t3)">📋 案例</span><br><b style="color:var(--brand)">CBAM碳關稅合規</b></div>
+    <div style="padding:.7rem .9rem;border:var(--border);border-radius:var(--radius);background:rgba(22,119,255,.04)"><span style="color:var(--t3)">📈 效益</span><br><b style="color:var(--brand-2)">2億訂單保住 · 3月合規</b></div>
+    <div style="padding:.7rem .9rem;border:var(--border);border-radius:var(--radius);background:rgba(22,119,255,.04)"><span style="color:var(--t3)">💰 ROI</span><br><b style="color:var(--brand-amber)">聯合經營模式確立</b></div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     07 — 案例三：上海汽配集團 — AI Agent 全鏈自動化
+     ══════════════════════════════════════════════════════ -->
+<section data-auto-animate>
+  <div class="y-badge y-badge-blue fragment">案例故事 · 03</div>
+  <h2 class="fragment"><span>上海汽配集團</span><br>三合一方案全線導入</h2>
+  <hr class="y-divider fragment">
+  <div class="two-col fragment">
+    <div class="card" style="margin-bottom:0">
+      <span class="card-icon">🏢</span>
+      <h4>客戶背景</h4>
+      <p style="font-size:.82rem;color:var(--t3);margin-top:.4rem">上海汽配集團 · 用友 NC 老客戶<br>3 廠分佈華東 · 多品種小批量</p>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <span class="card-icon">🎯</span>
+      <h4>導入方案</h4>
+      <p style="font-size:.82rem;color:var(--t3);margin-top:.4rem">APS（三廠排程）+ CRIS（集團碳帳本）<br>+ AI Agent（全鏈自動化）</p>
+    </div>
+  </div>
+  <div class="timeline">
+    <div class="tl-item fragment">
+      <div class="tl-num">1</div>
+      <div class="tl-content">
+        <h4>聯合診斷</h4>
+        <p>多廠排程不協同 / 碳管理零基礎 / 數位化程度低</p>
+      </div>
+    </div>
+    <div class="tl-item fragment">
+      <div class="tl-num">2</div>
+      <div class="tl-content">
+        <h4>三合一方案設計</h4>
+        <p>APS + CRIS + AI Agent 全線導入 · 導入期 <b style="color:var(--brand)">6 個月</b></p>
+      </div>
+    </div>
+    <div class="tl-item fragment">
+      <div class="tl-num">3</div>
+      <div class="tl-content">
+        <h4>上線成果</h4>
+        <p><b style="color:var(--brand-2)">異常響應 4h → 15min</b> · 全鏈自動化 · 7×24 運行</p>
+      </div>
+    </div>
+    <div class="tl-item fragment">
+      <div class="tl-num">4</div>
+      <div class="tl-content">
+        <h4>投資回報</h4>
+        <p><b style="color:var(--brand-amber)">14 個月回本</b> · 三廠協同效應持續放大</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fragment" style="margin-top:1.2rem;display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;font-size:.72rem">
+    <div style="padding:.7rem .9rem;border:var(--border);border-radius:var(--radius);background:rgba(22,119,255,.04)"><span style="color:var(--t3)">📋 案例</span><br><b style="color:var(--brand)">三合一方案全線導入</b></div>
+    <div style="padding:.7rem .9rem;border:var(--border);border-radius:var(--radius);background:rgba(22,119,255,.04)"><span style="color:var(--t3)">📈 效益</span><br><b style="color:var(--brand-2)">異常響應4h→15min</b></div>
+    <div style="padding:.7rem .9rem;border:var(--border);border-radius:var(--radius);background:rgba(22,119,255,.04)"><span style="color:var(--t3)">💰 ROI</span><br><b style="color:var(--brand-amber)">14個月回本</b></div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     08 — Phase Roadmap：從蘇州到上海
+     ══════════════════════════════════════════════════════ -->
+<section>
+  <div class="section-intro">
+    <div class="y-badge y-badge-gold fragment">聯合經營路線圖</div>
+    <h2 class="fragment"><span>三階段複製</span></h2>
+    <hr class="y-divider fragment">
+    <p class="fragment" style="max-width:600px;margin:0 auto;text-align:center">先做一個、做透、做出數據 — 然後複製到下一個城市、下一個行業</p>
+  </div>
+  <div class="step-grid fragment" style="grid-template-columns:repeat(3,1fr);margin-top:2rem">
+    <div class="step-item">
+      <div class="step-num">M1-3</div>
+      <h4>Phase 1</h4>
+      <p style="font-size:.75rem;color:var(--t3);margin-top:.3rem"><b style="color:var(--t1)">蘇州單點驗證</b></p>
+      <p style="font-size:.75rem;color:var(--t3);margin-top:.5rem">3 家台商<br>U8→YonSuite+APS 試點</p>
+    </div>
+    <div class="step-item">
+      <div class="step-num">M4-6</div>
+      <h4>Phase 2</h4>
+      <p style="font-size:.75rem;color:var(--t3);margin-top:.3rem"><b style="color:var(--t1)">區域複製</b></p>
+      <p style="font-size:.75rem;color:var(--t3);margin-top:.5rem">蘇州案例 → 寧波模具行業<br>橫向複製驗證</p>
+    </div>
+    <div class="step-item">
+      <div class="step-num">M7-12</div>
+      <h4>Phase 3</h4>
+      <p style="font-size:.75rem;color:var(--t3);margin-top:.3rem"><b style="color:var(--t1)">上海總部牽引</b></p>
+      <p style="font-size:.75rem;color:var(--t3);margin-top:.5rem">品牌背書 → 外資 ESG<br>+ 大型國企規模化</p>
+    </div>
+  </div>
+  <div class="cta-box fragment" style="margin-top:2rem">
+    <p>Phase 1 已驗證，Phase 2 正在推進</p>
+    <div class="y-highlight">不是靠運氣成交，是有方法論的複製</div>
+  </div>
+</section>
+<section>
+  <div class="y-badge y-badge-blue fragment">合作機制</div>
+  <h2 class="fragment">讓銷售「賣得動」的<b>賦能體系</b></h2>
+  <hr class="y-divider fragment">
+  <p class="fragment">好產品不如好機制 — 讓用友銷售敢賣、會賣、想賣</p>
+  <div class="grid grid-2 fragment" style="margin-top:1.5rem">
+    <div class="card">
+      <span class="card-icon">📚</span>
+      <h4>知識賦能</h4>
+      <p>1 頁紙銷售話術 + 3 分鐘 Demo 影片<br>3 個可複製的成交故事</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">🛠️</span>
+      <h4>工具賦能</h4>
+      <p>聯合方案手冊（APS/ESG/AI 三合一）<br>統一 ROI 計算模板</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">💰</span>
+      <h4>激勵賦能</h4>
+      <p>聯合分成模式（透明、可預期）<br>快速結算週期</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">🚀</span>
+      <h4>支援賦能</h4>
+      <p>潤思技術團隊 48h 內響應售前需求<br>聯合拜訪全程陪跑</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     09 — 30 天聯合行動計畫
+     ══════════════════════════════════════════════════════ -->
+<section>
+  <div class="y-badge y-badge-gold fragment">行動計畫</div>
+  <h2 class="fragment"><span>30 天聯合行動</span></h2>
+  <hr class="y-divider fragment">
+  <p class="fragment">不談遠景，談接下來 30 天我們一起做什麼</p>
+  <div class="step-grid fragment" style="margin-top:1.5rem">
+    <div class="step-item">
+      <div class="step-num">W1</div>
+      <h4>培訓啟動</h4>
+      <p>三城銷售線上培訓 1h<br>產出 Q&A 文件</p>
+    </div>
+    <div class="step-item">
+      <div class="step-num">W2</div>
+      <h4>客戶篩選</h4>
+      <p>各城選 2-3 家標的<br>客戶清單 + 初步方案</p>
+    </div>
+    <div class="step-item">
+      <div class="step-num">W3</div>
+      <h4>聯合拜訪</h4>
+      <p>潤思技術 + 用友 AE<br>客戶反饋 + 修正方案</p>
+    </div>
+    <div class="step-item">
+      <div class="step-num">W4</div>
+      <h4>簽約衝刺</h4>
+      <p>成交 + 第一波<br>成功案例包裝</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     10 — 滬蘇甬聯合經營模式
+     ══════════════════════════════════════════════════════ -->
+<section>
+  <div class="section-intro">
+    <div class="y-badge y-badge-blue fragment">區域經營</div>
+    <h2 class="fragment"><span>滬蘇甬聯合經營</span></h2>
+    <hr class="y-divider fragment">
+    <p class="fragment" style="max-width:640px;margin:0 auto;text-align:center">
+      不是三個城市的散打，是一個區域的協同作戰
+    </p>
+  </div>
+  <div class="map-grid fragment" style="margin-top:2rem">
+    <div class="map-card">
+      <div class="city-icon">🏙️</div>
+      <h4>上海</h4>
+      <p>總部經濟<br>策略夥伴關係建立<br>標竿客戶示範</p>
+    </div>
+    <div class="map-card">
+      <div class="city-icon">🔗</div>
+      <h4>蘇州</h4>
+      <p>製造腹地<br>量產型客戶<br>快速複製模式</p>
+    </div>
+    <div class="map-card">
+      <div class="city-icon">⚓</div>
+      <h4>寧波</h4>
+      <p>外貿導向<br>碳關稅剛需<br>ESG 切入點</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     11 — 協同機制深拆
+     ══════════════════════════════════════════════════════ -->
+<section>
+  <div class="y-badge y-badge-blue fragment">合作機制</div>
+  <h2 class="fragment"><span>用友 + 潤思</span><br>= 區域經營增量引擎</h2>
+  <hr class="y-divider fragment">
+  <div class="two-col fragment">
+    <div>
+      <h3 style="font-size:1.1rem;margin-bottom:.8rem">用友的角色</h3>
+      <ul style="margin:0;padding:0;list-style:none">
+        <li style="padding:.4rem 0;border-bottom:var(--border);font-size:.85rem;color:var(--t3);display:flex;gap:.5rem">
+          <span class="dot"></span><span>平台 + 通路 + 客戶基礎</span>
+        </li>
+        <li style="padding:.4rem 0;border-bottom:var(--border);font-size:.85rem;color:var(--t3);display:flex;gap:.5rem">
+          <span class="dot"></span><span>ERP 數據 + 行業 know-how</span>
+        </li>
+        <li style="padding:.4rem 0;font-size:.85rem;color:var(--t3);display:flex;gap:.5rem">
+          <span class="dot"></span><span>售前觸達 + 信任背書</span>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="font-size:1.1rem;margin-bottom:.8rem">潤思的角色</h3>
+      <ul style="margin:0;padding:0;list-style:none">
+        <li style="padding:.4rem 0;border-bottom:var(--border);font-size:.85rem;color:var(--t3);display:flex;gap:.5rem">
+          <span class="dot"></span><span>行業應用 + 落地執行</span>
+        </li>
+        <li style="padding:.4rem 0;border-bottom:var(--border);font-size:.85rem;color:var(--t3);display:flex;gap:.5rem">
+          <span class="dot"></span><span>APS / ESG / AI 三合一方案</span>
+        </li>
+        <li style="padding:.4rem 0;font-size:.85rem;color:var(--t3);display:flex;gap:.5rem">
+          <span class="dot"></span><span>48h 技術響應 + 快速試點</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="cta-box fragment" style="margin-top:1.5rem">
+    <p>用友帶入機會 → 潤思補位執行 → 聯合交付價值 → 雙方共同成長</p>
+    <div class="y-highlight">1+1 &gt; 2 的區域經營增量引擎</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     12 — CTA
+     ══════════════════════════════════════════════════════ -->
+<section class="s-hero hero-bg">
+  <div class="y-badge y-badge-gold fragment">行動呼籲</div>
+  <h2 class="fragment">
+    <span>現在是最好時機</span><br>我們準備好了
+  </h2>
+  <hr class="y-divider fragment">
+  <div class="pill-grid fragment" style="justify-content:center">
+    <div class="pill">✅ 三產品已整合為統一方案</div>
+    <div class="pill">✅ 三城協同模式已驗證可行</div>
+    <div class="pill">✅ 用友 + 潤思 = 增量引擎</div>
+  </div>
+  <div class="cta-box fragment" style="margin-top:2rem">
+    <p style="font-size:.9rem">會後掃碼加入聯合經營工作群</p>
+    <div class="y-highlight">本週啟動培訓，W4 簽約衝刺</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     13 — Q&A
+     ══════════════════════════════════════════════════════ -->
+<section class="s-hero hero-bg">
+  <h2 class="fragment"><span>Q &amp; A</span></h2>
+  <hr class="y-divider fragment">
+  <p class="fragment" style="font-size:1rem;color:var(--t2)">謝謝各位</p>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<!-- Reveal.js init -->
+<script src="../shared/reveal-config.js"></script>
+</body>
+</html>
