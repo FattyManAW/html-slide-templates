@@ -1,0 +1,2755 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Signal Template</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Signal style uses four font families:
+        1. Source Serif 4     — editorial serif for headlines, mixed roman + italic
+        2. DM Sans            — clean grotesque for body, stats numbers
+        3. IBM Plex Mono      — condensed mono labels, chrome, kickers
+        4. Noto Serif SC / Noto Sans SC — Chinese fallbacks for every role
+    -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400;1,8..60,600;1,8..60,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  ZONE A · TOKENS  —  SIGNAL STYLE                                    ║
+   ║                                                                      ║
+   ║  Replace this block to change the visual style entirely.             ║
+   ║  Every color, font, and size in this file reads from these vars.     ║
+   ║  Never write raw hex values, font names, or px sizes outside here.   ║
+   ╚══════════════════════════════════════════════════════════════════════╝ */
+      :root {
+        /* ── Palette ──────────────────────────────────────────────────────── */
+        /* Dark navy: intelligence, authority, depth — the editorial tone */
+        --c-bg: #1a1410;
+        /* Slightly lighter navy for secondary dark surfaces */
+        --c-bg-alt: #161218;
+        /* Warm cream: the light slide background, like aged paper */
+        --c-bg-light: #f0ece3;
+        /* Slightly cooler cream for secondary light surfaces */
+        --c-bg-light-alt: #e6e0d4;
+
+        /* Primary text on dark: warm off-white, never pure white */
+        --c-fg: #e2dcd0;
+        /* Secondary text on dark: muted blue-grey */
+        --c-fg-2: #9a8a80;
+        /* Tertiary / hint text on dark */
+        --c-fg-3: #5a4a40;
+        /* Primary text on light: very dark navy near-black */
+        --c-fg-light: #1a1410;
+        /* Secondary text on light */
+        --c-fg-light-2: #5a6270;
+        /* Tertiary text on light */
+        --c-fg-light-3: #9aa0a8;
+
+        /* Accent: warm antique gold — the single hot colour; used for italic serif em */
+        --c-accent: #d4302f;
+        /* Dividers on dark: dark navy border */
+        --c-border: #2e2220;
+        /* Dividers on light: warm greige border */
+        --c-border-light: #d4ccc0;
+
+        /* ── Typography ──────────────────────────────────────────────────── */
+        /* Display + Heading: Source Serif 4 — editorial, authoritative.
+           Mix roman and italic mid-sentence for the Signal look. */
+        --f-display: "Source Serif 4", "Noto Serif SC", Georgia, serif;
+        --f-heading: "Source Serif 4", "Noto Serif SC", Georgia, serif;
+        /* Body: DM Sans — clean grotesque, steps back so the serif leads */
+        --f-body: "DM Sans", "Noto Sans SC", system-ui, sans-serif;
+        /* Mono: IBM Plex Mono — the condensed editorial timestamp */
+        --f-mono: "IBM Plex Mono", "JetBrains Mono", monospace;
+
+        /* ── Type Scale ───────────────────────────────────────────────────── */
+        /* vw units keep all sizes proportional regardless of window width */
+        --sz-display: 9.5vw; /* hero cover title — very large, commanding */
+        --sz-h1: 5.2vw; /* chapter titles */
+        --sz-h2: 3vw; /* slide headlines */
+        --sz-h3: 1.9vw; /* sub-headlines, compare panel titles */
+        --sz-lead: 1.4vw; /* lead paragraph */
+        --sz-body: 1.05vw; /* body text, bullets */
+        --sz-caption: 0.82vw; /* captions, footnotes */
+        --sz-label: 0.7vw; /* chrome, kickers, tags, mono metadata */
+
+        /* ── Spacing ─────────────────────────────────────────────────────── */
+        --pad-x: 7.5vw; /* horizontal slide padding */
+        --pad-y: 5.5vh; /* vertical slide padding */
+        --gap-lg: 4vh; /* between major content sections */
+        --gap-md: 2.5vh; /* between related elements */
+        --gap-sm: 1.2vh; /* between tightly coupled elements */
+
+        /* ── Motion ──────────────────────────────────────────────────────── */
+        /* Slide pan: sharp in, sharp out — deliberate, not springy */
+        --ease-slide: cubic-bezier(0.77, 0, 0.175, 1);
+        --dur-slide: 0.85s;
+        /* Element entrance: spring-y ease-out for content reveals */
+        --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+        --dur-enter: 0.65s;
+      }
+
+      /* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  ZONE B · ENGINE — DO NOT MODIFY                                     ║
+   ║                                                                      ║
+   ║  Layout engine, transitions, animation system, navigation.           ║
+   ║  Touching this breaks the mechanics.                                 ║
+   ╚══════════════════════════════════════════════════════════════════════╝ */
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--c-bg);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Deck container — all slides sit side by side in one horizontal strip */
+      #deck {
+        display: flex;
+        height: 100vh;
+        transition: transform var(--dur-slide) var(--ease-slide);
+        will-change: transform;
+      }
+
+      /* Slide base — each slide occupies exactly one full viewport */
+      .slide {
+        flex: 0 0 100vw;
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        padding: var(--pad-y) var(--pad-x);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        overflow: hidden;
+      }
+      .slide-body {
+        min-height: 0;
+      }
+
+      /* Slide themes */
+      .slide.dark {
+        background: var(--c-bg);
+        color: var(--c-fg);
+      }
+      .slide.light {
+        background: var(--c-bg-light);
+        color: var(--c-fg-light);
+      }
+
+      /* ── Animation system ─────────────────────────────────────────────── */
+      /* Elements start invisible; become visible only when slide is active */
+      [data-anim] {
+        opacity: 0;
+      }
+      .slide.is-active [data-anim] {
+        animation-duration: var(--dur-enter);
+        animation-timing-function: var(--ease-enter);
+        animation-fill-mode: forwards;
+      }
+      .slide.is-active [data-anim="fade-up"] {
+        animation-name: kFadeUp;
+      }
+      .slide.is-active [data-anim="fade-in"] {
+        animation-name: kFadeIn;
+      }
+      .slide.is-active [data-anim="reveal-right"] {
+        animation-name: kRevealRight;
+      }
+      .slide.is-active [data-anim="reveal-left"] {
+        animation-name: kRevealLeft;
+      }
+      .slide.is-active [data-anim="scale-in"] {
+        animation-name: kScaleIn;
+      }
+
+      /* Staggered delays via data-delay attribute (0–6) */
+      [data-delay="0"] {
+        animation-delay: 0s;
+      }
+      [data-delay="1"] {
+        animation-delay: 0.08s;
+      }
+      [data-delay="2"] {
+        animation-delay: 0.18s;
+      }
+      [data-delay="3"] {
+        animation-delay: 0.3s;
+      }
+      [data-delay="4"] {
+        animation-delay: 0.44s;
+      }
+      [data-delay="5"] {
+        animation-delay: 0.6s;
+      }
+      [data-delay="6"] {
+        animation-delay: 0.78s;
+      }
+
+      @keyframes kFadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(28px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes kFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes kRevealRight {
+        from {
+          clip-path: inset(0 100% 0 0);
+          opacity: 1;
+        }
+        to {
+          clip-path: inset(0 0% 0 0);
+          opacity: 1;
+        }
+      }
+      @keyframes kRevealLeft {
+        from {
+          clip-path: inset(0 0 0 100%);
+          opacity: 1;
+        }
+        to {
+          clip-path: inset(0 0 0 0%);
+          opacity: 1;
+        }
+      }
+      @keyframes kScaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.94);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      /* ── Navigation UI ───────────────────────────────────────────────── */
+      #nav-dots {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 7px;
+        z-index: 100;
+      }
+      .nav-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.22);
+        cursor: pointer;
+        transition:
+          background 0.3s,
+          transform 0.3s;
+        padding: 0;
+      }
+      .nav-dot.is-active {
+        background: rgba(255, 255, 255, 0.8);
+        transform: scale(1.4);
+      }
+
+      #slide-counter {
+        position: fixed;
+        bottom: 20px;
+        right: 28px;
+        font-family: var(--f-mono);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        color: rgba(255, 255, 255, 0.25);
+        z-index: 100;
+        user-select: none;
+      }
+
+      /* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  ZONE C · TYPOGRAPHY                                                 ║
+   ╚══════════════════════════════════════════════════════════════════════╝ */
+
+      .display {
+        font-family: var(--f-display);
+        font-size: var(--sz-display);
+        font-weight: 700;
+        line-height: 0.96;
+        letter-spacing: -0.02em;
+      }
+      .h1 {
+        font-family: var(--f-heading);
+        font-size: var(--sz-h1);
+        font-weight: 600;
+        line-height: 1.08;
+        letter-spacing: -0.01em;
+      }
+      .h2 {
+        font-family: var(--f-heading);
+        font-size: var(--sz-h2);
+        font-weight: 600;
+        line-height: 1.18;
+      }
+      .h3 {
+        font-family: var(--f-heading);
+        font-size: var(--sz-h3);
+        font-weight: 500;
+        line-height: 1.3;
+      }
+      .lead {
+        font-family: var(--f-body);
+        font-size: var(--sz-lead);
+        font-weight: 400;
+        line-height: 1.58;
+      }
+      .body {
+        font-family: var(--f-body);
+        font-size: var(--sz-body);
+        font-weight: 400;
+        line-height: 1.65;
+      }
+      .caption {
+        font-family: var(--f-body);
+        font-size: var(--sz-caption);
+        font-weight: 400;
+        line-height: 1.5;
+      }
+      .label {
+        font-family: var(--f-mono);
+        font-size: var(--sz-label);
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      /* Signal signature: italic serif in accent gold for em tags inside headings */
+      .display em,
+      .h1 em,
+      .h2 em,
+      .h3 em {
+        
+        color: var(--c-accent);
+      }
+      .lead em {
+        
+        color: var(--c-accent);
+        font-family: var(--f-heading);
+      }
+
+      .dark .muted {
+        color: var(--c-fg-2);
+      }
+      .light .muted {
+        color: var(--c-fg-light-2);
+      }
+      .accent {
+        color: var(--c-accent);
+      }
+
+      /* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  ZONE D · CHROME + GRID TEXTURE                                      ║
+   ╚══════════════════════════════════════════════════════════════════════╝ */
+
+      /* Subtle grid overlay — the Signal visual fingerprint */
+      .slide.dark::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 80px 80px;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .slide.dark > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Chrome (top bar) and footer */
+      .slide-chrome,
+      .slide-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .slide-chrome {
+        padding-bottom: var(--gap-sm);
+        border-bottom: 1px solid var(--c-border);
+        margin-bottom: var(--gap-md);
+      }
+      .slide-foot {
+        padding-top: var(--gap-sm);
+        border-top: 1px solid var(--c-border);
+        margin-top: var(--gap-md);
+      }
+      .light .slide-chrome,
+      .light .slide-foot {
+        border-color: var(--c-border-light);
+      }
+
+      /* Special layouts that don't use chrome/foot */
+      .slide--cover .slide-chrome,
+      .slide--cover .slide-foot,
+      .slide--chapter .slide-chrome,
+      .slide--chapter .slide-foot,
+      .slide--quote .slide-chrome,
+      .slide--quote .slide-foot,
+      .slide--end .slide-chrome,
+      .slide--end .slide-foot {
+        display: none;
+      }
+
+      /* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  ZONE E · LAYOUT PATTERNS                                            ║
+   ╚══════════════════════════════════════════════════════════════════════╝ */
+
+      /* 1. COVER ─────────────────────────────────────────────────────────── */
+      .slide--cover {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+      .cover-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        justify-content: flex-end;
+        gap: var(--gap-md);
+      }
+      .cover-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: var(--gap-lg);
+        padding-top: var(--gap-sm);
+        border-top: 1px solid var(--c-border);
+      }
+      .light .cover-meta {
+        border-color: var(--c-border-light);
+      }
+
+      /* 2. CHAPTER ────────────────────────────────────────────────────────── */
+      .slide--chapter {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .chapter-num {
+        font-family: var(--f-mono);
+        font-size: var(--sz-label);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--c-accent);
+        margin-bottom: var(--gap-md);
+      }
+      .chapter-rule {
+        width: 36px;
+        height: 1px;
+        background: var(--c-accent);
+        margin-bottom: var(--gap-md);
+      }
+
+      /* 3. STATEMENT ──────────────────────────────────────────────────────── */
+      .slide--statement .statement-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--gap-md);
+      }
+
+      /* 4. SPLIT ──────────────────────────────────────────────────────────── */
+      .slide--split .slide-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: calc(var(--pad-x) * 0.7);
+        align-items: center;
+      }
+      .split-text {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-md);
+      }
+      .split-image {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-sm);
+      }
+      .split-image img {
+        width: 100%;
+        height: 55vh;
+        object-fit: cover;
+        display: block;
+      }
+
+      /* 5. STATS ───────────────────────────────────────────────────────────── */
+      .slide--stats .slide-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--gap-lg);
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+      }
+      .stats-grid.cols-4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .stat-card {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-sm);
+        padding: var(--gap-md) var(--gap-md) var(--gap-md) 0;
+        border-top: 1px solid var(--c-border);
+      }
+      .light .stat-card {
+        border-color: var(--c-border-light);
+      }
+      .stat-value {
+        font-family: var(--f-display);
+        font-size: 5.5vw;
+        font-weight: 600;
+        line-height: 1;
+        color: var(--c-accent);
+        letter-spacing: -0.02em;
+      }
+      .stat-label {
+        font-family: var(--f-body);
+        font-size: var(--sz-body);
+        line-height: 1.5;
+      }
+      .stat-note {
+        font-family: var(--f-mono);
+        font-size: var(--sz-caption);
+        letter-spacing: 0.05em;
+        color: var(--c-fg-3);
+      }
+      .light .stat-note {
+        color: var(--c-fg-light-3);
+      }
+
+      /* 6. QUOTE ───────────────────────────────────────────────────────────── */
+      .slide--quote {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: calc(var(--pad-y) * 1.2) calc(var(--pad-x) * 1.1);
+      }
+      .quote-mark {
+        font-family: var(--f-display);
+        font-size: 8vw;
+        line-height: 0.6;
+        color: var(--c-accent);
+        margin-bottom: var(--gap-md);
+        font-weight: 300;
+      }
+      .quote-text {
+        font-family: var(--f-display);
+        font-size: 3.6vw;
+        font-weight: 400;
+        line-height: 1.28;
+        letter-spacing: -0.01em;
+        max-width: 78%;
+        margin-bottom: var(--gap-lg);
+        
+      }
+      .quote-attr {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4vh;
+      }
+
+      /* 7. LIST ────────────────────────────────────────────────────────────── */
+      .slide--list .slide-body {
+        display: grid;
+        grid-template-columns: 2fr 3fr;
+        gap: calc(var(--pad-x) * 0.8);
+        align-items: center;
+      }
+      .list-head {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-md);
+        padding-top: var(--gap-sm);
+      }
+      .bullet-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-md);
+      }
+      .bullet-list li {
+        display: grid;
+        grid-template-columns: 1.2em 1fr;
+        gap: 0.5em;
+        font-family: var(--f-body);
+        font-size: var(--sz-lead);
+        line-height: 1.5;
+      }
+      .bullet-list li::before {
+        content: "—";
+        color: var(--c-accent);
+        font-family: var(--f-mono);
+      }
+      .dark .bullet-list li {
+        color: var(--c-fg);
+      }
+      .light .bullet-list li {
+        color: var(--c-fg-light);
+      }
+
+      /* 8. COMPARE ─────────────────────────────────────────────────────────── */
+      .slide--compare .slide-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        height: 100%;
+      }
+      .compare-panel {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-md);
+        padding: var(--gap-md) 0;
+      }
+      .compare-panel.left {
+        padding-right: calc(var(--pad-x) * 0.55);
+        border-right: 1px solid var(--c-border);
+      }
+      .compare-panel.right {
+        padding-left: calc(var(--pad-x) * 0.55);
+      }
+      .light .compare-panel.left {
+        border-color: var(--c-border-light);
+      }
+      .compare-label {
+        font-family: var(--f-mono);
+        font-size: var(--sz-label);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding-bottom: var(--gap-sm);
+        border-bottom: 1px solid var(--c-border);
+      }
+      .compare-label.after {
+        color: var(--c-accent);
+      }
+      .light .compare-label {
+        border-color: var(--c-border-light);
+      }
+
+      /* 9. END ─────────────────────────────────────────────────────────────── */
+      .slide--end {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--gap-md);
+      }
+
+      /* 10. EDITORIAL — Editorial newsletter style ─────────────────── */
+      .slide--editorial {
+        grid-template-rows: auto auto auto 1fr auto;
+      }
+      .editorial-stamp {
+        font-family: var(--f-mono);
+        font-size: var(--sz-label);
+        letter-spacing: 0.22em;
+        color: var(--c-fg-3);
+      }
+      .editorial-stamp .accent {
+        color: var(--c-accent);
+      }
+      .editorial-hl {
+        font-family: var(--f-heading);
+        font-size: 2.75vw;
+        font-weight: 600;
+        line-height: 1.2;
+        padding-bottom: var(--gap-md);
+        border-bottom: 1px solid var(--c-border);
+      }
+      .editorial-hl em {
+        
+        color: var(--c-accent);
+      }
+      .light .editorial-hl {
+        border-color: var(--c-border-light);
+      }
+
+      /* Two-column layout */
+      .editorial-cols {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 0;
+        min-height: 0;
+      }
+      .editorial-col-left {
+        padding-right: calc(var(--pad-x) * 0.38);
+        border-right: 1px solid var(--c-border);
+        display: flex;
+        flex-direction: column;
+      }
+      .editorial-col-right {
+        padding-left: calc(var(--pad-x) * 0.38);
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-md);
+      }
+      .light .editorial-col-left {
+        border-color: var(--c-border-light);
+      }
+      .editorial-col-head {
+        font-family: var(--f-mono);
+        font-size: var(--sz-label);
+        letter-spacing: 0.18em;
+        color: var(--c-fg-3);
+        padding-bottom: var(--gap-sm);
+        border-bottom: 1px solid var(--c-border);
+        margin-bottom: var(--gap-sm);
+      }
+      .light .editorial-col-head {
+        border-color: var(--c-border-light);
+        color: var(--c-fg-light-3);
+      }
+
+      /* Date log in left column */
+      .log-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.4vh;
+        flex: 1;
+      }
+      .log-row {
+        display: grid;
+        grid-template-columns: 5em 1fr;
+        gap: 1em;
+        align-items: baseline;
+      }
+      .log-dt {
+        font-family: var(--f-mono);
+        font-size: var(--sz-caption);
+        letter-spacing: 0.1em;
+        color: var(--c-fg-3);
+        white-space: nowrap;
+      }
+      .log-dd {
+        font-family: var(--f-body);
+        font-size: var(--sz-body);
+        line-height: 1.52;
+      }
+      .log-dd em {
+        
+        color: var(--c-accent);
+        font-family: var(--f-heading);
+      }
+
+      /* 2x2 mixed-font stat grid in right column */
+      .stat-4 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+      }
+      .stat-4-cell {
+        border-top: 1px solid var(--c-border);
+        padding: 1.2vh 0 1.5vh 0;
+      }
+      .stat-4-cell:nth-child(even) {
+        border-left: 1px solid var(--c-border);
+        padding-left: 1.8vh;
+      }
+      .light .stat-4-cell {
+        border-color: var(--c-border-light);
+      }
+      /* Value: roman grotesque number (DM Sans 700) + italic serif suffix (Source Serif 4 italic) */
+      .stat-4-val {
+        font-family: var(--f-body);
+        font-size: 2.5vw;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--c-fg);
+        margin-bottom: 0.5vh;
+        letter-spacing: -0.02em;
+      }
+      .stat-4-val em {
+        font-family: var(--f-display);
+        
+        color: var(--c-accent);
+        font-weight: 600;
+      }
+      .stat-4-label {
+        font-family: var(--f-mono);
+        font-size: 0.62vw;
+        letter-spacing: 0.07em;
+        color: var(--c-fg-3);
+        line-height: 1.4;
+        text-transform: uppercase;
+      }
+      .light .stat-4-label {
+        color: var(--c-fg-light-3);
+      }
+
+      /* Analysis line below columns */
+      .editorial-analysis {
+        font-family: var(--f-body);
+        font-size: 0.88vw;
+        line-height: 1.72;
+        color: var(--c-fg-2);
+        border-top: 1px solid var(--c-border);
+        padding-top: var(--gap-sm);
+      }
+      .light .editorial-analysis {
+        border-color: var(--c-border-light);
+        color: var(--c-fg-light-2);
+      }
+
+      /* 11. DENSE — Two-column editorial text ─────────────────────────────── */
+      .slide--dense {
+        grid-template-rows: auto auto 1fr auto;
+      }
+      .dense-hl {
+        font-family: var(--f-heading);
+        font-size: 2.4vw;
+        font-weight: 600;
+        line-height: 1.2;
+        padding-bottom: var(--gap-md);
+        border-bottom: 1px solid var(--c-border);
+        max-width: 88%;
+      }
+      .dense-hl em {
+        
+        color: var(--c-accent);
+      }
+      .light .dense-hl {
+        border-color: var(--c-border-light);
+      }
+      .dense-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: calc(var(--pad-x) * 0.45);
+        padding-top: var(--gap-md);
+        min-height: 0;
+      }
+      .dense-col h4 {
+        font-family: var(--f-mono);
+        font-size: var(--sz-label);
+        letter-spacing: 0.16em;
+        color: var(--c-fg-3);
+        margin-bottom: var(--gap-sm);
+        padding-bottom: var(--gap-sm);
+        border-bottom: 1px solid var(--c-border);
+      }
+      .light .dense-col h4 {
+        border-color: var(--c-border-light);
+        color: var(--c-fg-light-3);
+      }
+      .dense-col p {
+        font-family: var(--f-body);
+        font-size: var(--sz-body);
+        line-height: 1.72;
+        color: var(--c-fg-2);
+        margin-bottom: 1.4vh;
+      }
+      .light .dense-col p {
+        color: var(--c-fg-light-2);
+      }
+      .dense-col p:last-child {
+        margin-bottom: 0;
+      }
+      .dense-col p em {
+        
+        color: var(--c-accent);
+        font-family: var(--f-heading);
+      }
+
+      /* 12. FULLBLEED ──────────────────────────────────────────────────────── */
+      .slide--fullbleed {
+        padding: 0;
+        display: block;
+        position: relative;
+      }
+      .slide--fullbleed::before {
+        display: none !important;
+      }
+      .fb-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .fb-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: var(--pad-y) var(--pad-x);
+        background: linear-gradient(
+          to bottom,
+          transparent 0%,
+          rgba(15, 20, 36, 0.9) 35%
+        );
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-sm);
+      }
+
+      /* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  ZONE F · COMPONENTS                                                 ║
+   ╚══════════════════════════════════════════════════════════════════════╝ */
+
+      /* Decorative rule lines */
+      .rule {
+        width: 36px;
+        height: 1px;
+        background: var(--c-accent);
+      }
+      .rule.full {
+        width: 100%;
+        background: var(--c-border);
+      }
+      .light .rule.full {
+        background: var(--c-border-light);
+      }
+
+      /* Kicker label (above headlines) */
+      .kicker {
+        font-family: var(--f-mono);
+        font-size: var(--sz-label);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--c-accent);
+      }
+
+      /* Outlined tag */
+      .tag {
+        display: inline-block;
+        font-family: var(--f-mono);
+        font-size: var(--sz-label);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--c-accent);
+        border: 1px solid var(--c-accent);
+        padding: 0.3em 0.8em;
+        line-height: 1;
+      }
+
+      /* Image caption */
+      .img-caption {
+        font-family: var(--f-mono);
+        font-size: var(--sz-caption);
+        letter-spacing: 0.04em;
+        opacity: 0.5;
+        margin-top: 0.8vh;
+      }
+      /* ── CHART ─────────────────────────────────────────────────────────── */
+      .slide--chart .slide-body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-md);
+        min-height: 0;
+      }
+      .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-shrink: 0;
+      }
+      .chart-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        min-height: 0;
+      }
+      .bar-track {
+        height: 30vh;
+        display: flex;
+        align-items: flex-end;
+        gap: 4vw;
+        border-left: 1px solid var(--c-border);
+        padding-left: 0.5vw;
+      }
+      .light .bar-track {
+        border-color: var(--c-border-light);
+      }
+      .bar-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-end;
+        gap: 1vh;
+        height: 100%;
+      }
+      .bar-fill {
+        width: 100%;
+        background: var(--c-fg-3);
+      }
+      .bar-fill.accent {
+        background: var(--c-accent);
+      }
+      .light .bar-fill {
+        background: var(--c-fg-light-3);
+      }
+      .light .bar-fill.accent {
+        background: var(--c-accent);
+      }
+      .bar-x-label {
+        font-family: var(--f-mono);
+        font-size: var(--sz-caption);
+        letter-spacing: 0.1em;
+        color: var(--c-fg-3);
+        white-space: nowrap;
+        text-transform: uppercase;
+      }
+      .light .bar-x-label {
+        color: var(--c-fg-light-3);
+      }
+      .bar-val {
+        font-family: var(--f-body);
+        font-size: var(--sz-body);
+        font-weight: 500;
+        color: var(--c-fg-2);
+      }
+      .bar-val.hi {
+        color: var(--c-accent);
+        font-weight: 600;
+      }
+      .light .bar-val {
+        color: var(--c-fg-light-2);
+      }
+      .chart-baseline {
+        height: 1px;
+        background: var(--c-border);
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .light .chart-baseline {
+        background: var(--c-border-light);
+      }
+      .chart-source {
+        flex-shrink: 0;
+        font-family: var(--f-mono);
+        font-size: var(--sz-caption);
+        color: var(--c-fg-3);
+        letter-spacing: 0.06em;
+        margin-top: var(--gap-sm);
+      }
+      .light .chart-source {
+        color: var(--c-fg-light-3);
+      }
+
+      /* ── DIAGRAM ────────────────────────────────────────────────────────── */
+      .slide--diagram .slide-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--gap-lg);
+        min-height: 0;
+      }
+      .flow {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+      }
+      .flow-step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-sm);
+        padding-right: calc(var(--pad-x) * 0.35);
+      }
+      .flow-num {
+        font-family: var(--f-display);
+        font-size: 4.5vw;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--c-accent);
+        letter-spacing: -0.02em;
+        
+      }
+      .flow-title {
+        font-family: var(--f-heading);
+        font-size: var(--sz-h3);
+        font-weight: 600;
+        line-height: 1.15;
+        color: var(--c-fg);
+      }
+      .light .flow-title {
+        color: var(--c-fg-light);
+      }
+      .flow-desc {
+        font-family: var(--f-body);
+        font-size: var(--sz-body);
+        color: var(--c-fg-2);
+        line-height: 1.62;
+      }
+      .light .flow-desc {
+        color: var(--c-fg-light-2);
+      }
+      .flow-arrow {
+        display: flex;
+        align-items: flex-start;
+        padding-top: 1em;
+        padding-right: calc(var(--pad-x) * 0.35);
+        font-size: 2vw;
+        color: var(--c-border);
+        flex-shrink: 0;
+      }
+      .light .flow-arrow {
+        color: var(--c-border-light);
+      }
+
+      /* ── PIE / DONUT CHART ──────────────────────────────────────────────── */
+      .slide--pie .slide-body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-md);
+        min-height: 0;
+      }
+      .pie-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: calc(var(--pad-x) * 0.7);
+        align-items: center;
+        flex: 1;
+        min-height: 0;
+      }
+      .pie-donut {
+        width: min(26vw, 42vh);
+        height: min(26vw, 42vh);
+        border-radius: 50%;
+        position: relative;
+        flex-shrink: 0;
+        justify-self: center;
+      }
+      .pie-donut::after {
+        content: "";
+        position: absolute;
+        inset: 22%;
+        border-radius: 50%;
+        background: var(--c-bg);
+      }
+      .pie-legend {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-md);
+      }
+      .pie-item {
+        display: grid;
+        grid-template-columns: 0.8em 1fr auto;
+        gap: 1em;
+        align-items: center;
+      }
+      .pie-swatch {
+        width: 0.8em;
+        height: 0.8em;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .pie-item-label {
+        font-family: var(--f-body);
+        font-size: var(--sz-lead);
+        line-height: 1.4;
+      }
+      .pie-item-val {
+        font-family: var(--f-mono);
+        font-size: var(--sz-body);
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        color: var(--c-accent);
+      }
+      .pie-total {
+        margin-top: var(--gap-sm);
+        padding-top: var(--gap-sm);
+        border-top: 1px solid var(--c-border);
+        font-family: var(--f-mono);
+        font-size: var(--sz-label);
+        letter-spacing: 0.1em;
+        color: var(--c-fg-3);
+      }
+      .light .pie-donut::after {
+        background: var(--c-bg-light);
+      }
+      .light .pie-total {
+        border-color: var(--c-border-light);
+        color: var(--c-fg-light-3);
+      }
+
+      /* ── PYRAMID ─────────────────────────────────────────────────────────── */
+      .slide--pyramid .slide-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--gap-md);
+        min-height: 0;
+      }
+      .pyramid {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: center;
+      }
+      .pyr-level {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.3vh 2.5vw;
+        border-left: 3px solid var(--c-accent);
+        transition: width 0.3s;
+      }
+      .pyr-level:nth-child(1) {
+        background: color-mix(in srgb, var(--c-accent) 70%, var(--c-bg));
+        width: 38%;
+      }
+      .pyr-level:nth-child(2) {
+        background: color-mix(in srgb, var(--c-accent) 45%, var(--c-bg));
+        width: 54%;
+      }
+      .pyr-level:nth-child(3) {
+        background: color-mix(in srgb, var(--c-accent) 27%, var(--c-bg));
+        width: 70%;
+      }
+      .pyr-level:nth-child(4) {
+        background: color-mix(in srgb, var(--c-accent) 15%, var(--c-bg));
+        width: 86%;
+      }
+      .pyr-level:nth-child(5) {
+        background: color-mix(in srgb, var(--c-accent) 8%, var(--c-bg));
+        width: 100%;
+      }
+      .pyr-name {
+        font-family: var(--f-heading);
+        font-size: var(--sz-h3);
+        font-weight: 500;
+        line-height: 1.2;
+      }
+      .pyr-desc {
+        font-family: var(--f-body);
+        font-size: var(--sz-body);
+        color: var(--c-fg-2);
+        text-align: right;
+        max-width: 55%;
+        line-height: 1.4;
+      }
+
+      /* ── VERTICAL TIMELINE ───────────────────────────────────────────────── */
+      .slide--vtimeline {
+        grid-template-rows: auto auto 1fr auto;
+      }
+      .vt-hl {
+        font-family: var(--f-heading);
+        font-size: var(--sz-h2);
+        font-weight: 600;
+        padding-bottom: var(--gap-md);
+        border-bottom: 1px solid var(--c-border);
+      }
+      .light .vt-hl {
+        border-color: var(--c-border-light);
+      }
+      .vtimeline {
+        display: grid;
+        grid-template-columns: 8em 1px 1fr;
+        gap: 0;
+        min-height: 0;
+        padding-top: var(--gap-md);
+      }
+      .vt-date {
+        font-family: var(--f-mono);
+        font-size: var(--sz-caption);
+        letter-spacing: 0.08em;
+        color: var(--c-fg-3);
+        text-align: right;
+        padding: 0 1.5vw 3.5vh 0;
+        line-height: 1.4;
+      }
+      .light .vt-date {
+        color: var(--c-fg-light-3);
+      }
+      .vt-spine {
+        background: var(--c-border);
+        position: relative;
+      }
+      .light .vt-spine {
+        background: var(--c-border-light);
+      }
+      .vt-spine::before {
+        content: "";
+        position: absolute;
+        top: 0.25em;
+        left: -4px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--c-accent);
+      }
+      .vt-content {
+        padding: 0 0 3.5vh 1.5vw;
+      }
+      .vt-title {
+        font-family: var(--f-heading);
+        font-size: var(--sz-h3);
+        font-weight: 500;
+        margin-bottom: 0.6vh;
+        line-height: 1.25;
+      }
+      .vt-body {
+        font-family: var(--f-body);
+        font-size: var(--sz-body);
+        color: var(--c-fg-2);
+        line-height: 1.65;
+      }
+      .light .vt-body {
+        color: var(--c-fg-light-2);
+      }
+      .vt-body em {
+        
+        color: var(--c-accent);
+        font-family: var(--f-heading);
+      }
+
+      /* ── CYCLE PROCESS ───────────────────────────────────────────────────── */
+      .slide--cycle .slide-body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-md);
+        min-height: 0;
+      }
+      .cycle-grid {
+        display: grid;
+        grid-template-columns: 1fr 3em 1fr;
+        grid-template-rows: 1fr 3em 1fr;
+        gap: var(--gap-sm);
+        flex: 1;
+        min-height: 0;
+        align-items: center;
+      }
+      .cycle-step {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-sm);
+        padding: var(--gap-md);
+        border-top: 2px solid var(--c-accent);
+      }
+      .cycle-num {
+        font-family: var(--f-display);
+        font-size: 3.2vw;
+        font-weight: 700;
+        color: var(--c-accent);
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+      .cycle-title {
+        font-family: var(--f-heading);
+        font-size: var(--sz-h3);
+        font-weight: 500;
+        line-height: 1.2;
+      }
+      .cycle-desc {
+        font-family: var(--f-body);
+        font-size: var(--sz-body);
+        color: var(--c-fg-2);
+        line-height: 1.6;
+      }
+      .light .cycle-desc {
+        color: var(--c-fg-light-2);
+      }
+      .cycle-arrow {
+        color: var(--c-fg-3);
+        font-size: 1.8vw;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .light .cycle-arrow {
+        color: var(--c-fg-light-3);
+      }
+      .cycle-corner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--c-fg-3);
+        font-size: 1.3vw;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- NAV DOTS: generated by JS -->
+    <nav id="nav-dots"></nav>
+    <!-- SLIDE COUNTER: generated by JS -->
+    <div id="slide-counter"></div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         DECK — all slides live here, side by side
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <div id="deck">
+      
+
+    <!-- ═══════ SLIDE 1 · COVER ══════════════════════════════════════ -->
+    <section class="slide slide--cover dark">
+      <div class="slide-body">
+        <div class="cover-body">
+          <p class="label" style="color:var(--c-accent);margin-bottom:1vh" data-anim="fade-up" data-delay="0">用友 · YONYOU</p>
+          <h1 class="display" data-anim="fade-up" data-delay="1">
+            AI-APS 排程如何切入<em>智能制造深水区</em>
+          </h1>
+          <div class="cover-meta" data-anim="fade-up" data-delay="2">
+            <p class="lead muted">制造领域ISV赋能专场</p>
+            <p class="label muted">2026年5月</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SLIDE 2 · TOC ════════════════════════════════════════ -->
+    <section class="slide slide--stats dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">2</span>
+      </header>
+      <div class="slide-body">
+        <div class="stats-grid cols-4">
+          <div class="stat-card" data-anim="fade-up" data-delay="0">
+            <div class="stat-value" style="font-size:3vw">1-1</div>
+            <div class="stat-label">APS大单索通集团<br>多工厂协同方案剖析</div>
+          </div>
+          <div class="stat-card" data-anim="fade-up" data-delay="1">
+            <div class="stat-value" style="font-size:3vw">2-1</div>
+            <div class="stat-label">售前快速响应APS项目<br>客户需求实战技巧</div>
+          </div>
+          <div class="stat-card" data-anim="fade-up" data-delay="2">
+            <div class="stat-value" style="font-size:3vw">3-1</div>
+            <div class="stat-label">ESG双碳管理产品<br>如何帮助企业双碳合规</div>
+          </div>
+          <div class="stat-card" data-anim="fade-up" data-delay="3">
+            <div class="stat-value" style="font-size:3vw">1-3</div>
+            <div class="stat-label">10天开发<br>Demo系统演示</div>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · AI-APS 智能制造</span>
+        <span class="label muted">2 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 3 · CHAPTER 1-1 ════════════════════════════════ -->
+    <section class="slide slide--chapter dark">
+      <div class="slide-body">
+        <div data-anim="fade-up" data-delay="0">
+          <p class="chapter-num">SECTION 1-1</p>
+          <div class="chapter-rule"></div>
+          <h1 class="h1">APS大单索通集团</h1>
+          <p class="lead muted" style="margin-top:var(--gap-md)">多工厂协同方案剖析</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SLIDE 4 · 业务现状 — 公司概况 ═══════════════════════ -->
+    <section class="slide slide--split light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 业务现状</span>
+      </header>
+      <div class="slide-body" data-anim="fade-up" data-delay="0">
+        <div class="split-text">
+          <p class="kicker">公司概况</p>
+          <h2 class="h2">索通发展股份有限公司</h2>
+          <p class="lead">铝电解预焙阳极行业龙头企业，集团型多工厂运营模式。产品服务于铝电解行业，是电解铝生产的关键消耗材料。</p>
+          <p class="body muted">业务覆盖原料采购、多工厂协同生产、全国分销全链条，年产能规模居行业前列。</p>
+        </div>
+        <div class="split-text" style="display:flex;flex-direction:column;gap:var(--gap-md)">
+          <div class="stat-card">
+            <div class="stat-value">7+</div>
+            <div class="stat-label">下属分厂</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">121</div>
+            <div class="stat-label">原料供应商</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">N</div>
+            <div class="stat-label">全国客户</div>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · APS大单索通集团</span>
+        <span class="label muted">4 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 5 · 生产工艺 ═══════════════════════════════════ -->
+    <section class="slide slide--editorial light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 业务现状</span>
+      </header>
+      <div class="slide-body">
+        <p class="kicker" data-anim="fade-up" data-delay="0">生产工艺</p>
+        <h2 class="h2 editorial-hl" data-anim="fade-up" data-delay="1">预焙阳极全流程<em>生产工艺</em></h2>
+        <div class="editorial-cols" data-anim="fade-up" data-delay="2">
+          <div class="editorial-col-left">
+            <div class="log-list">
+              <div class="log-row"><span class="log-dt">原料</span><span class="log-dd">石油焦 → 煅烧 → 煅后焦</span></div>
+              <div class="log-row"><span class="log-dt">混配</span><span class="log-dd">多元素精确配比（C/S/Fe/Si/Na/Ca/Mg）</span></div>
+              <div class="log-row"><span class="log-dt">成型</span><span class="log-dd">振动成型 → 生阳极</span></div>
+              <div class="log-row"><span class="log-dt">焙烧</span><span class="log-dd">高温焙烧 → 预焙阳极成品</span></div>
+              <div class="log-row"><span class="log-dt">质检</span><span class="log-dd">质量指标检测 → 合格入库</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 索通生产工艺</span>
+        <span class="label muted">5 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 6 · 原料混配 ═══════════════════════════════════ -->
+    <section class="slide slide--pie dark">
+      <div class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 业务现状 · 原料混配</span>
+      </div>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">原料混配<em>三要素</em></h2>
+        <div class="pie-row" data-anim="fade-in" data-delay="1">
+          <div class="pie-donut" style="background:conic-gradient(var(--c-accent) 0% 30%,#3d5475 30% 70%,#526880 70% 100%)"></div>
+          <div class="pie-legend">
+            <div class="pie-item"><div class="pie-swatch" style="background:var(--c-accent)"></div><span class="pie-item-label">辅料</span><span class="pie-item-val">30%</span></div>
+            <div class="pie-item"><div class="pie-swatch" style="background:#3d5475"></div><span class="pie-item-label">煅后焦</span><span class="pie-item-val">40%</span></div>
+            <div class="pie-item"><div class="pie-swatch" style="background:#526880"></div><span class="pie-item-label">沥青</span><span class="pie-item-val">30%</span></div>
+            <div class="pie-total">元素管控：C/S/Fe/Si/Na/Ca/Mg · 质量稳定 · 用料均衡 · 低成本</div>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 原料混配目标</span>
+        <span class="label muted">6 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 7 · 集团主排产流程 ═════════════════════════════ -->
+    <section class="slide slide--diagram light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 业务现状 · 集团主排产</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">集团主排产<em>协同流程</em></h2>
+        <div class="flow" data-anim="fade-up" data-delay="1" style="flex-wrap:wrap">
+          <div class="flow-step"><div class="flow-num">01</div><div class="flow-title">销售订单</div><div class="flow-desc">客户需求汇总</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">02</div><div class="flow-title">产销协同</div><div class="flow-desc">多工厂产能匹配</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">03</div><div class="flow-title">主计划订单</div><div class="flow-desc">利润最优分配</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">04</div><div class="flow-title">基地排产</div><div class="flow-desc">工厂级执行</div></div>
+        </div>
+        <p class="lead" style="margin-top:var(--gap-lg)" data-anim="fade-up" data-delay="2">协同因子：利润核算 · 制造费用 · 工厂产能 · 产品偏好 · 属地偏好 · 原料供应 · 协同采购</p>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 集团产销协同</span>
+        <span class="label muted">7 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 8 · 索通集团结构 ═══════════════════════════════ -->
+    <section class="slide slide--stats dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 业务现状 · 集团架构</span>
+      </header>
+      <div class="slide-body" style="justify-content:center">
+        <h2 class="h2" data-anim="fade-up" data-delay="0" style="margin-bottom:var(--gap-lg)">索通集团<em>多工厂架构</em></h2>
+        <div class="stats-grid" data-anim="fade-up" data-delay="1" style="grid-template-columns:repeat(4,1fr)">
+          <div class="stat-card"><div class="stat-value" style="font-size:2.2vw">齐力</div><div class="stat-label">索通齐力炭材料<br>2分厂</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2.2vw">云铝</div><div class="stat-label">云南索通云铝<br>3分厂</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2.2vw">湖北</div><div class="stat-label">湖北索通炭材料<br>3分厂</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2.2vw">陇西</div><div class="stat-label">陇西索通炭材料<br>2分厂</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2.2vw">山东</div><div class="stat-label">山东创新炭材料<br>3分厂</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2.2vw">嘉峪关</div><div class="stat-label">嘉峪关索通炭材料<br>3分厂</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2.2vw">重庆</div><div class="stat-label">重庆锦旗碳素<br>2分厂</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2.2vw">...</div><div class="stat-label">持续扩展中</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 索通集团架构</span>
+        <span class="label muted">8 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 9 · CHAPTER 1-2 ════════════════════════════════ -->
+    <section class="slide slide--chapter dark">
+      <div class="slide-body">
+        <div data-anim="fade-up" data-delay="0">
+          <p class="chapter-num">SECTION 1-2</p>
+          <div class="chapter-rule"></div>
+          <h1 class="h1">客户需求</h1>
+          <p class="lead muted" style="margin-top:var(--gap-md)">利润最优 · 产能约束 · 工艺约束 · 定向匹配</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SLIDE 10 · 主排产需求 ════════════════════════════════ -->
+    <section class="slide slide--statement light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 客户需求 · 主排产</span>
+      </header>
+      <div class="slide-body">
+        <div class="statement-body" data-anim="fade-up" data-delay="0">
+          <p class="kicker">核心业务模式</p>
+          <h2 class="h2">集中接单 · 集中采购 · <em>分散生产</em> · 分散发货</h2>
+          <p class="lead muted">集团统一接收销售订单，集中采购石油焦等原料，根据利润最优原则分配至各分厂生产，成品从最近工厂发运至客户。</p>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 主排产业务模式</span>
+        <span class="label muted">10 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 11 · 利润最优 ══════════════════════════════════ -->
+    <section class="slide slide--dense light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 客户需求 · 利润最优</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2 dense-hl" data-anim="fade-up" data-delay="0">分单决策<em>十二维因子</em></h2>
+        <div class="dense-cols" data-anim="fade-up" data-delay="1">
+          <div class="dense-col">
+            <h4>交付与定向</h4>
+            <p>订单交期约束 · 定向分配（云铝股份→曲靖工厂、魏桥集团定向）</p>
+            <h4>原料成本</h4>
+            <p>石油焦采购种类/量/价 · 煅后焦预算成本 · 原料到厂运费</p>
+            <h4>产品与质量</h4>
+            <p>大小块型比例 · 订单质量指标约束 · 原料→产品质量转换系数</p>
+          </div>
+          <div class="dense-col">
+            <h4>生产制造</h4>
+            <p>各厂生产成本 · 各厂生产工艺流程 · 不同订单工艺路线</p>
+            <h4>物流运输</h4>
+            <p>产品从各厂到客户运输费用</p>
+            <h4>产能约束</h4>
+            <p>各工厂产能上限 · 设备检修计划核减</p>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 利润最优分单因子</span>
+        <span class="label muted">11 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 12 · 原料成本 ═════════════════════════════════ -->
+    <section class="slide slide--stats dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 客户需求 · 原料成本</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">成本结构<em>四层核算</em></h2>
+        <div class="stats-grid" data-anim="fade-up" data-delay="1" style="grid-template-columns:repeat(4,1fr)">
+          <div class="stat-card"><div class="stat-value" style="font-size:2.8vw">121</div><div class="stat-label">供应商提供石油焦种类/价格/运费/质量信息</div><div class="stat-note">算法优化最优配比</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2.8vw">制造</div><div class="stat-label">各订单在各工厂的生产制造费用</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2.8vw">运输</div><div class="stat-label">产品到客户运输成本</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2.8vw">预算</div><div class="stat-label">非石油焦的其他原料成本</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 四层成本核算</span>
+        <span class="label muted">12 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 13 · 产能约束 ═════════════════════════════════ -->
+    <section class="slide slide--list light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 客户需求 · 产能约束</span>
+      </header>
+      <div class="slide-body" data-anim="fade-up" data-delay="0">
+        <div class="list-head">
+          <p class="kicker">约束条件</p>
+          <h2 class="h2">产能约束<em>四维模型</em></h2>
+        </div>
+        <ul class="bullet-list">
+          <li>各分厂总产能约束 — 根据各分厂产能进行销售订单排产</li>
+          <li>大小块产能约束 — 根据设备情况进行大小块产能分配</li>
+          <li>交期约束 — 根据销售订单交期进行产能匹配</li>
+          <li>检修计划 — 与设备集成，根据检修计划核减产能</li>
+        </ul>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 产能约束模型</span>
+        <span class="label muted">13 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 14 · 工艺约束 ═════════════════════════════════ -->
+    <section class="slide slide--list light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 客户需求 · 工艺约束</span>
+      </header>
+      <div class="slide-body" data-anim="fade-up" data-delay="0">
+        <div class="list-head">
+          <p class="kicker">约束条件</p>
+          <h2 class="h2">工艺约束<em>五维模型</em></h2>
+        </div>
+        <ul class="bullet-list">
+          <li>工艺路线约束 — 根据各分厂工艺路线不同，可生产产品不同</li>
+          <li>工艺流程 — 各产品不同的工艺流程</li>
+          <li>质量约束 — 匹配统筹原料配比，设置配比转换系数</li>
+          <li>合格率 — 根据工厂工艺情况核减产能</li>
+          <li>物料约束 — 根据工厂工艺情况可生产物料不同</li>
+        </ul>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 工艺约束模型</span>
+        <span class="label muted">14 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 15 · 排产计划 ═════════════════════════════════ -->
+    <section class="slide slide--statement light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 客户需求 · 排产计划</span>
+      </header>
+      <div class="slide-body">
+        <div class="statement-body" data-anim="fade-up" data-delay="1">
+          <h2 class="h2">多订单<em>并行排产</em></h2>
+          <ul class="bullet-list" style="margin-top:var(--gap-md)">
+            <li>根据销售订单计划开始/结束发货时间，约束期间发货节奏</li>
+            <li>根据发货计划同时按产能进行多订单并行排产</li>
+            <li>每天产能占用弹性调整 · 大小块比例弹性调整</li>
+            <li>满足<em>持续发货</em>的时间窗要求</li>
+          </ul>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 并行排产机制</span>
+        <span class="label muted">15 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 16 · 定向约束 ═════════════════════════════════ -->
+    <section class="slide slide--statement light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 客户需求 · 定向约束</span>
+      </header>
+      <div class="slide-body">
+        <div class="statement-body" data-anim="fade-up" data-delay="1">
+          <h2 class="h2">定向约束<em>与人工干预</em></h2>
+          <ul class="bullet-list" style="margin-top:var(--gap-md)">
+            <li><em>客户定向匹配</em> — 根据集团战略，部分客户产品定向某个工厂生产</li>
+            <li><em>人工调整</em> — 满足基本约束下可调整计划时间、工厂等</li>
+            <li><em>计划变更</em> — 支持对计划订单进行变更处理</li>
+          </ul>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 定向约束机制</span>
+        <span class="label muted">16 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 17 · 项目背景与目标 ═════════════════════════════ -->
+    <section class="slide slide--compare dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 项目背景与目标</span>
+      </header>
+      <div class="slide-body" data-anim="fade-up" data-delay="0">
+        <div class="compare-panel left">
+          <p class="compare-label">背景</p>
+          <h3 class="h3">索通发展集团型多工厂企业</h3>
+          <p class="body muted">主要产品铝电解预焙阳极。业务模式：集中接单、集中采购、分散生产、分散发货。现有排产依赖人工经验，难以同时兼顾利润、产能、交期等多重约束。</p>
+        </div>
+        <div class="compare-panel right">
+          <p class="compare-label after">目标</p>
+          <h3 class="h3">建立<em>多工厂协同</em>排产体系</h3>
+          <p class="body muted">实现订单自动分配、利润最优。满足客户持续发货时间窗要求。与BIP、MES系统集成，形成计划-执行-反馈闭环。</p>
+          <p class="lead" style="margin-top:var(--gap-md);color:var(--c-accent)">转型目标：保交付 & 利润最优</p>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 项目背景与转型目标</span>
+        <span class="label muted">17 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 18 · 业务现状四象限 ═════════════════════════════ -->
+    <section class="slide slide--stats light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 业务现状与核心需求</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">业务现状<em>全景图</em></h2>
+        <div class="stats-grid cols-4" data-anim="fade-up" data-delay="1">
+          <div class="stat-card"><div class="stat-label" style="font-weight:600">销售订单</div><div class="stat-note">来自不同客户 · 特定发货日期窗口 · 期间持续发货</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600">原料采购</div><div class="stat-note">多家供应商石油焦 · 最大供货量/价格/地理位置差异</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600">生产制造</div><div class="stat-note">多家分厂 · 产能/工艺/成本不同 · 大小块型比例要求</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600">物流运输</div><div class="stat-note">原料供应商→工厂运费 · 成品工厂→客户运费各不同</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 业务全景四象限</span>
+        <span class="label muted">18 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 19 · APS产品架构 ═════════════════════════════ -->
+    <section class="slide slide--pyramid dark">
+      <div class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 用友APS产品架构</span>
+      </div>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">用友APS<em>产品架构图</em></h2>
+        <div class="pyramid-layers" data-anim="fade-up" data-delay="1" style="display:flex;flex-direction:column;gap:var(--gap-md);margin-top:var(--gap-lg);width:100%">
+          <div style="background:var(--c-bg-alt);padding:var(--gap-md);text-align:center;width:100%">
+            <p class="label" style="color:var(--c-accent)">第一层</p>
+            <p class="lead">AI Agent 前置算料 · 中长期协作采购 · APS产能物料同步规划</p>
+          </div>
+          <div style="background:var(--c-bg-alt);padding:var(--gap-md);text-align:center;width:78%;margin:0 auto">
+            <p class="label" style="color:var(--c-accent)">第二层</p>
+            <p class="lead">产线级别排程 · APS产线级计划</p>
+          </div>
+        </div>
+        <p class="caption muted" style="margin-top:var(--gap-md);text-align:center" data-anim="fade-in" data-delay="2">基于全域优化算法 + 约束规划的双层计划体系</p>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · APS产品架构</span>
+        <span class="label muted">19 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 20 · 解决方案架构 ═════════════════════════════ -->
+    <section class="slide slide--compare dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 解决方案总体架构</span>
+      </header>
+      <div class="slide-body" data-anim="fade-up" data-delay="0">
+        <div class="compare-panel left">
+          <p class="compare-label">集团层 · 多工厂协同</p>
+          <h3 class="h3">基于全域优化算法的<em>中期计划</em></h3>
+          <p class="body muted">季/月维度。以利润最优为目标，综合考虑订单交期、各厂产能、原料成本、运输成本等宏观约束，输出各工厂生产任务建议和原料采购建议。回答"做什么、做多少、在哪个厂做"。</p>
+        </div>
+        <div class="compare-panel right">
+          <p class="compare-label after">工厂层 · 详细排程</p>
+          <h3 class="h3">基于约束规划的<em>短期计划</em></h3>
+          <p class="body muted">周/日维度。承接集团层生产任务，转化为工序级指令。考虑设备状态、炉室利用最大化、工作时间、连批生产等精细化工艺术。回答"在哪条线、用哪个设备、按什么工序做"。</p>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 双层计划体系</span>
+        <span class="label muted">20 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 21 · 集团层统一规划 ═══════════════════════════ -->
+    <section class="slide slide--statement light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 集团层统一规划</span>
+      </header>
+      <div class="slide-body">
+        <div class="statement-body" data-anim="fade-up" data-delay="1">
+          <h2 class="h2">集团层统一规划</h2>
+          <ul class="bullet-list" style="margin-top:var(--gap-md)">
+            <li><em>利润约束</em> — 全局优化模型实现利润最优</li>
+            <li><em>产能约束</em> — 多工厂负荷平衡，避免产能闲置或超载</li>
+            <li><em>并行排产</em> — 满足客户持续发货时间窗需求</li>
+            <li>实现订单与原料采购的协同分配</li>
+          </ul>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 集团层规划</span>
+        <span class="label muted">21 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 22 · 工厂层详细排程 ═══════════════════════════ -->
+    <section class="slide slide--statement light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 工厂层详细排程</span>
+      </header>
+      <div class="slide-body">
+        <div class="statement-body" data-anim="fade-up" data-delay="1">
+          <h2 class="h2">工厂层详细排程</h2>
+          <ul class="bullet-list" style="margin-top:var(--gap-md)">
+            <li>将集团计划转化为<em>工序级</em>作业指令</li>
+            <li>考虑设备、模具、换型、连批等约束</li>
+            <li>确保计划可执行并提升现场效率</li>
+          </ul>
+          <p class="lead" style="margin-top:var(--gap-lg);color:var(--c-accent)">集团层排程包含工厂70%的逻辑</p>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 工厂层排程</span>
+        <span class="label muted">22 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 23 · 实施方案 ════════════════════════════════ -->
+    <section class="slide slide--compare light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 实施方案</span>
+      </header>
+      <div class="slide-body" data-anim="fade-up" data-delay="0">
+        <div class="compare-panel left">
+          <p class="compare-label">分步实施</p>
+          <h3 class="h3">8个月</h3>
+          <p class="body">4个月集团层 + 4个月工厂层<br>重复调研/数据采集/沟通</p>
+        </div>
+        <div class="compare-panel right">
+          <p class="compare-label after">同步实施 · 推荐</p>
+          <h3 class="h3">5.5个月 <em style="font-size:0.6em">-30%</em></h3>
+          <p class="body">一次调研同步推进<br>时间最优 · 成本最低 · 数据一致</p>
+          <p class="lead" style="margin-top:var(--gap-md);color:var(--c-accent)">减少2.5个月重复工作</p>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 实施路径对比</span>
+        <span class="label muted">23 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 24 · 项目实施计划 ════════════════════════════ -->
+    <section class="slide slide--diagram light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 项目实施计划</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">同步实施<em>5.5个月</em></h2>
+        <div class="flow" data-anim="fade-up" data-delay="1">
+          <div class="flow-step"><div class="flow-num">M1</div><div class="flow-title">调研</div><div class="flow-desc">集团+工厂<br>一次完成</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">M2-3</div><div class="flow-title">集团层实施</div><div class="flow-desc">全局优化<br>协同排产</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">M3-4</div><div class="flow-title">工厂层实施</div><div class="flow-desc">工序级排程<br>MES集成</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">M5</div><div class="flow-title">联调上线</div><div class="flow-desc">BIP+MES<br>全链路打通</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 5.5月实施路线</span>
+        <span class="label muted">24 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 25 · 系统集成 ════════════════════════════════ -->
+    <section class="slide slide--dense light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 系统集成方案</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2 dense-hl" data-anim="fade-up" data-delay="0">系统集成<em>双通道</em></h2>
+        <div class="dense-cols" data-anim="fade-up" data-delay="1">
+          <div class="dense-col">
+            <h4>与BIP一体化平台集成</h4>
+            <p><em>读取：</em>销售订单、客户主数据、物料主数据、BOM、工艺路线、供应商主数据</p>
+            <p><em>输出：</em>生产订单、采购建议、发货计划</p>
+          </div>
+          <div class="dense-col">
+            <h4>与MES系统集成</h4>
+            <p>标准API或中间表方式进行数据交互</p>
+            <p><em>下发：</em>工序级工单、派工指令</p>
+            <p><em>回传：</em>报工数据、设备状态、在制品信息</p>
+            <p>实时更新计划进度 · 灵活选择实时/批处理</p>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · BIP + MES 双通道集成</span>
+        <span class="label muted">25 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 26 · CHAPTER 1-3 ══════════════════════════════ -->
+    <section class="slide slide--chapter dark">
+      <div class="slide-body">
+        <div data-anim="fade-up" data-delay="0">
+          <p class="chapter-num">SECTION 1-3</p>
+          <div class="chapter-rule"></div>
+          <h1 class="h1">10天开发</h1>
+          <p class="lead muted" style="margin-top:var(--gap-md)">Demo系统演示</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SLIDE 27 · 核心价值 ════════════════════════════════ -->
+    <section class="slide slide--stats dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 核心价值</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">索通解决方案<em>五大核心价值</em></h2>
+        <div class="stats-grid" data-anim="fade-up" data-delay="1">
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">决策可视化</div><div class="stat-label">管理层可实时查看利润、交期、产能多维数据，决策有据可依</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">协同透明化</div><div class="stat-label">多工厂之间物料、产能一目了然，内部调拨高效透明</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">执行可追溯</div><div class="stat-label">每一张销售订单可穿透至生产工序，进度可跟踪</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">风险预警</div><div class="stat-label">交期风险、产能超载自动预警，变"救火"为"预防"</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">经验沉淀</div><div class="stat-label">将老师傅的经验转化为算法规则，降低对人的依赖</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 五大核心价值</span>
+        <span class="label muted">27 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 28 · 核心价值总结 ════════════════════════════ -->
+    <section class="slide slide--quote dark">
+      <div class="slide-body" data-anim="fade-up" data-delay="0">
+        <div class="quote-mark">"</div>
+        <p class="quote-text">将老师傅的经验<em>转化为算法规则</em>，从"救火式"调度变为"预防式"管理</p>
+        <div class="quote-attr">
+          <p class="lead" style="color:var(--c-accent)">索通集团 · 多工厂协同排产</p>
+          <p class="caption muted">保交付 · 利润最优 · 10天Demo验证</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SLIDE 29 · CHAPTER 2-1 ══════════════════════════════ -->
+    <section class="slide slide--chapter dark">
+      <div class="slide-body">
+        <div data-anim="fade-up" data-delay="0">
+          <p class="chapter-num">SECTION 2-1</p>
+          <div class="chapter-rule"></div>
+          <h1 class="h1">售前快速响应<em>APS</em>项目</h1>
+          <p class="lead muted" style="margin-top:var(--gap-md)">客户需求实战技巧</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SLIDE 30 · 標準版POC模型 ═══════════════════════════= -->
+    <section class="slide slide--statement light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友 · YS</span>
+        <span class="label muted">§ 售前快速响应</span>
+      </header>
+      <div class="slide-body">
+        <div class="statement-body" data-anim="fade-up" data-delay="1">
+          <p class="kicker">标准版POC模型</p>
+          <h2 class="h2">以客户资料建立<em>标准版POC</em>模型</h2>
+          <p class="lead muted">快速验证客户场景，缩短售前周期，提升中标率</p>
+          <ul class="bullet-list" style="margin-top:var(--gap-md)">
+            <li>导入客户基础数据 → 自动生成POC场景</li>
+            <li>标准排产模型快速适配客户行业特性</li>
+            <li>Demo演示即交付原型，降低售前成本</li>
+          </ul>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 售前POC快速响应</span>
+        <span class="label muted">30 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 31 · CHAPTER 3-1 ═════════════════════════════= -->
+    <section class="slide slide--chapter dark">
+      <div class="slide-body">
+        <div data-anim="fade-up" data-delay="0">
+          <p class="chapter-num">SECTION 3-1</p>
+          <div class="chapter-rule"></div>
+          <h1 class="h1">ESG双碳管理产品</h1>
+          <p class="lead muted" style="margin-top:var(--gap-md)">如何帮助企业双碳合规</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SLIDE 32 · 政策驱动 ═══════════════════════════════= -->
+    <section class="slide slide--dense light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 政策与市场双重驱动</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2 dense-hl" data-anim="fade-up" data-delay="0">碳管理的<em>政策驱动力</em></h2>
+        <div class="dense-cols" data-anim="fade-up" data-delay="1">
+          <div class="dense-col">
+            <h4>国际政策</h4>
+            <p><em>欧盟CBAM碳关税</em> — 2027年全面实施，首批覆盖钢铁/铝/电力</p>
+            <p><em>CSRD & ESRS</em> — 强制披露范围1-3碳排放，覆盖在欧经营中国企业</p>
+            <p>2025年起需提供碳足迹认证，2027年实施数字电池护照</p>
+          </div>
+          <div class="dense-col">
+            <h4>国内政策</h4>
+            <p><em>2030碳达峰 · 2060碳中和</em></p>
+            <p>全国碳市场扩容至八大行业，覆盖45亿吨排放量</p>
+            <p>2025年建立50+重点产品碳足迹标准</p>
+            <p>碳核查违规最高罚款200万 + 配额核减50%-100%</p>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 碳管理政策驱动力</span>
+        <span class="label muted">32 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 33 · 碳管理挑战与机遇 ═══════════════════════= -->
+    <section class="slide slide--stats dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 挑战与机遇</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">ESG框架下碳管理<em>三重驱动</em></h2>
+        <div class="stats-grid" data-anim="fade-up" data-delay="1" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">$40T+</div><div class="stat-label">全球ESG资管规模 · MSCI碳指标权重15%</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">64%</div><div class="stat-label">消费者将可持续性列为采购前三因素</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">9%</div><div class="stat-label">仅9%企业能完整计算范围3排放 · 错误率30-40%</div></div>
+        </div>
+        <p class="lead" style="margin-top:var(--gap-lg);text-align:center" data-anim="fade-in" data-delay="2">数字化与透明化成为<em style="color:var(--c-accent)">企业突围关键</em></p>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · ESG碳管理数据</span>
+        <span class="label muted">33 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 34 · 碳中和实施步骤 ═════════════════════════ -->
+    <section class="slide slide--diagram dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 碳中和实施步骤</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">企业<em>碳中和</em>实施五步法</h2>
+        <div class="flow" data-anim="fade-up" data-delay="1">
+          <div class="flow-step"><div class="flow-num">01</div><div class="flow-title">制定碳目标</div><div class="flow-desc">科学碳目标<br>SBTi对齐</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">02</div><div class="flow-title">摸清碳家底</div><div class="flow-desc">碳盘查<br>范围1-3</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">03</div><div class="flow-title">评价碳绩效</div><div class="flow-desc">对标分析<br>减排潜力</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">04</div><div class="flow-title">执行碳减排</div><div class="flow-desc">技术改造<br>工艺优化</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">05</div><div class="flow-title">实现碳中和</div><div class="flow-desc">碳抵消<br>持续改进</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 碳中和五步法</span>
+        <span class="label muted">34 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 35 · 碳盘查必要性 ═══════════════════════════ -->
+    <section class="slide slide--stats dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 碳盘查必要性</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">企业做碳盘查的<em>四大价值</em></h2>
+        <div class="stats-grid cols-4" data-anim="fade-up" data-delay="1">
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">合规</div><div class="stat-label">满足碳市场交易、碳税缴纳政策要求，规避数据不清导致的合规风险</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">降本</div><div class="stat-label">发现高耗能环节，通过技改、工艺优化降低能源消耗和生产成本</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">通行</div><div class="stat-label">面对CBAM等绿色贸易壁垒，碳盘查数据是产品出口的必要凭证</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:2vw">融资</div><div class="stat-label">碳数据透明企业平均融资成本降1.2%，绿色债券成功率提升40%</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 碳盘查四大价值</span>
+        <span class="label muted">35 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 36 · CHAPTER 3-2 ═════════════════════════════= -->
+    <section class="slide slide--chapter dark">
+      <div class="slide-body">
+        <div data-anim="fade-up" data-delay="0">
+          <p class="chapter-num">SECTION 3-2</p>
+          <div class="chapter-rule"></div>
+          <h1 class="h1">企业双碳管理</h1>
+          <p class="lead muted" style="margin-top:var(--gap-md)">现状与挑战</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SLIDE 37 · 碳管理痛点 ═════════════════════════════ -->
+    <section class="slide slide--list light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 碳管理痛点分析</span>
+      </header>
+      <div class="slide-body" data-anim="fade-up" data-delay="0">
+        <div class="list-head">
+          <p class="kicker">痛点分析</p>
+          <h2 class="h2">企业碳管理<em>六大痛点</em></h2>
+        </div>
+        <ul class="bullet-list">
+          <li><em>数据采集难</em> — 多源异构数据，人工填报效率低、易出错</li>
+          <li><em>核算不精准</em> — 排放因子选择不当、计算边界模糊</li>
+          <li><em>标准不统一</em> — 不同体系（ISO/ GHG/ 地方标准）要求各异</li>
+          <li><em>报告耗时长</em> — 手工编制碳排放报告，重复劳动严重</li>
+          <li><em>减排无方向</em> — 缺乏数据分析能力，减排决策靠经验</li>
+          <li><em>供应链不透明</em> — 范围3排放数据缺失，供应商碳数据难以获取</li>
+        </ul>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 碳管理六大痛点</span>
+        <span class="label muted">37 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 38 · 碳管理痛点详情 ═════════════════════════ -->
+    <section class="slide slide--dense light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 碳管理痛点详析</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2 dense-hl" data-anim="fade-up" data-delay="0">痛点根源<em>三重矛盾</em></h2>
+        <div class="dense-cols" data-anim="fade-up" data-delay="1">
+          <div class="dense-col">
+            <h4>数据 × 精度</h4>
+            <p>能源数据分散在ERP/MES/SCADA等多个系统，手动整合耗时且误差大。排放因子库不完整，范围3数据几乎空白</p>
+            <h4>合规 × 效率</h4>
+            <p>CBAM/CSRD/ESRS/碳市场等多套标准交叉要求，人工编制多版本报告效率极低</p>
+          </div>
+          <div class="dense-col">
+            <h4>减排 × 成本</h4>
+            <p>缺乏碳减排潜力分析工具，无法量化技改方案的减排效果和投资回报。碳资产管理手段单一，碳配额交易被动</p>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 痛点根源三重矛盾</span>
+        <span class="label muted">38 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 39 · CHAPTER 3-3 ═════════════════════════════= -->
+    <section class="slide slide--chapter dark">
+      <div class="slide-body">
+        <div data-anim="fade-up" data-delay="0">
+          <p class="chapter-num">SECTION 3-3</p>
+          <div class="chapter-rule"></div>
+          <h1 class="h1">IMPACTs</h1>
+          <p class="lead muted" style="margin-top:var(--gap-md)">双碳管理解决方案</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SLIDE 40 · IMPACTs 方案概述 ═══════════════════════= -->
+    <section class="slide slide--statement dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ IMPACTs 双碳管理</span>
+      </header>
+      <div class="slide-body">
+        <div class="statement-body" data-anim="fade-up" data-delay="1">
+          <h2 class="h2">IMPACTs<em>双碳智能管理系统</em></h2>
+          <p class="lead">基于物联网实时监测 + AI智能算法，覆盖<em style="color:var(--c-accent)">数据采集→智能核算→清册报告→碳资产管理</em>全流程</p>
+          <ul class="bullet-list" style="margin-top:var(--gap-lg)">
+            <li>严格遵循ISO 14064、GHG Protocol等国际标准</li>
+            <li>全面覆盖范围1-3碳排放管理场景</li>
+            <li>深度对接用友ERP、APS、MES、SCM等核心业务系统</li>
+            <li>作为用友ISV生态认证产品</li>
+          </ul>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · IMPACTs 解决方案</span>
+        <span class="label muted">40 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 41-42 · 方案架构/体系 ═══════════════════════ -->
+    <section class="slide slide--pyramid dark">
+      <div class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ IMPACTs 方案架构</span>
+      </div>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">IMPACTs<em>技术架构</em></h2>
+        <div class="pyramid-layers" data-anim="fade-up" data-delay="1" style="display:flex;flex-direction:column;gap:0.5vh;margin-top:2vh;width:100%">
+          <div style="background:var(--c-bg-alt);padding:2vh 3vw;text-align:center;width:100%"><p class="label" style="color:var(--c-accent)">应用层</p><p class="lead">碳盘查 · 碳核算 · 碳报告 · 碳交易 · 碳减排</p></div>
+          <div style="background:var(--c-bg-alt);padding:2vh 3vw;text-align:center;width:85%;margin:0 auto"><p class="label" style="color:var(--c-accent)">算法层</p><p class="lead">AI智能核算引擎 · 减排潜力分析 · 碳价预测</p></div>
+          <div style="background:var(--c-bg-alt);padding:2vh 3vw;text-align:center;width:70%;margin:0 auto"><p class="label" style="color:var(--c-accent)">数据层</p><p class="lead">IoT实时监测 · 多源数据融合 · 排放因子库</p></div>
+          <div style="background:var(--c-bg-alt);padding:2vh 3vw;text-align:center;width:55%;margin:0 auto"><p class="label" style="color:var(--c-accent)">集成层</p><p class="lead">用友ERP · APS · MES · SCM</p></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · IMPACTs 四层架构</span>
+        <span class="label muted">41 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 42 · 综合解决方案体系 ═══════════════════════= -->
+    <section class="slide slide--stats light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ IMPACTs 综合体系</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">综合解决方案<em>四大支柱</em></h2>
+        <div class="stats-grid cols-4" data-anim="fade-up" data-delay="1">
+          <div class="stat-card"><div class="stat-label" style="font-weight:600;font-size:var(--sz-lead)">碳数据采集</div><div class="stat-note">IoT传感器 · PLC数据 · 能源管理系统 · 人工填报</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600;font-size:var(--sz-lead)">碳核算引擎</div><div class="stat-note">ISO 14064 · GHG Protocol · 行业方法学 · AI校准</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600;font-size:var(--sz-lead)">碳报告合规</div><div class="stat-note">CBAM报告 · CSRD/ESRS · 碳市场履约 · 碳足迹认证</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600;font-size:var(--sz-lead)">碳资产管理</div><div class="stat-note">配额交易 · CCER开发 · 碳金融 · 减排项目管理</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · IMPACTs 四大支柱</span>
+        <span class="label muted">42 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 43 · 适用行业 ═════════════════════════════= -->
+    <section class="slide slide--stats dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ IMPACTs 适用行业</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">主要适用<em>九大行业</em></h2>
+        <div class="stats-grid" data-anim="fade-up" data-delay="1" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card"><div class="stat-label">重工业领域</div></div>
+          <div class="stat-card"><div class="stat-label">电力能源行业</div></div>
+          <div class="stat-card"><div class="stat-label">交通运输业</div></div>
+          <div class="stat-card"><div class="stat-label">建筑房地产</div></div>
+          <div class="stat-card"><div class="stat-label">电子信息产业</div></div>
+          <div class="stat-card"><div class="stat-label">零售服务业</div></div>
+          <div class="stat-card"><div class="stat-label">农林牧渔业</div></div>
+          <div class="stat-card"><div class="stat-label">医药化工业</div></div>
+          <div class="stat-card"><div class="stat-label">园区及公共机构</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · IMPACTs 九大行业</span>
+        <span class="label muted">43 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 44 · 方案亮点 ═════════════════════════════= -->
+    <section class="slide slide--statement light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ IMPACTs 方案亮点</span>
+      </header>
+      <div class="slide-body">
+        <div class="statement-body" data-anim="fade-up" data-delay="1">
+          <h2 class="h2">IMPACTs<em>方案亮点</em></h2>
+          <ul class="bullet-list" style="margin-top:var(--gap-md)">
+            <li><em>一站式</em> — 覆盖数据采集→核算→报告→资产管理全流程</li>
+            <li><em>智能化</em> — AI算法自动识别排放异常、推荐减排方案</li>
+            <li><em>合规性</em> — 内置ISO 14064/GHG Protocol/ CBAM等多套标准模板</li>
+            <li><em>嵌入式</em> — 深度对接用友生态，碳排放数据与业务数据同源</li>
+            <li><em>可扩展</em> — 支持集团型多组织、多层级碳管理架构</li>
+          </ul>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · IMPACTs 方案亮点</span>
+        <span class="label muted">44 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 45 · 核心功能 ═════════════════════════════= -->
+    <section class="slide slide--stats light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ IMPACTs 核心功能</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">IMPACTs<em>四大核心功能</em></h2>
+        <div class="stats-grid cols-4" data-anim="fade-up" data-delay="1">
+          <div class="stat-card"><div class="stat-label" style="font-weight:600;font-size:var(--sz-lead)">多源数据采集</div><div class="stat-note">能源消耗 · 工业过程排放 · 废弃物处理 · 多系统数据整合</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600;font-size:var(--sz-lead)">精准碳排放核算</div><div class="stat-note">依国际标准对企业所有业务活动的碳排放进行核算</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600;font-size:var(--sz-lead)">深度数据分析</div><div class="stat-note">识别减排机会 · 量化减排效果 · 制定具体减排措施</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600;font-size:var(--sz-lead)">合规报告生成</div><div class="stat-note">国际标准碳排放报告 · 协助企业获得相关认证</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · IMPACTs 四大功能</span>
+        <span class="label muted">45 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 46 · CHAPTER 3-4 ═════════════════════════════= -->
+    <section class="slide slide--chapter dark">
+      <div class="slide-body">
+        <div data-anim="fade-up" data-delay="0">
+          <p class="chapter-num">SECTION 3-4</p>
+          <div class="chapter-rule"></div>
+          <h1 class="h1">IMPACTs</h1>
+          <p class="lead muted" style="margin-top:var(--gap-md)">双碳管理客户案例</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ SLIDE 47 · 合作伙伴 ═════════════════════════════= -->
+    <section class="slide slide--stats dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 合作伙伴</span>
+      </header>
+      <div class="slide-body" style="justify-content:center">
+        <h2 class="h2" data-anim="fade-up" data-delay="0" style="margin-bottom:var(--gap-lg)"><em>合作伙伴</em>生态</h2>
+        <div class="stats-grid" data-anim="fade-up" data-delay="1" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card"><div class="stat-label" style="font-weight:600">认证机构</div><div class="stat-note">SGS · TÜV · 中国质量认证中心 · CTI华测</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600">行业协会</div><div class="stat-note">中国有色金属工业协会 · 中国钢铁工业协会</div></div>
+          <div class="stat-card"><div class="stat-label" style="font-weight:600">技术伙伴</div><div class="stat-note">IoT传感器厂商 · 能源管理平台 · 碳交易平台</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · IMPACTs 合作伙伴</span>
+        <span class="label muted">47 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 48 · 案例金属制品 ══════════════════════════ -->
+    <section class="slide slide--statement light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 客户案例</span>
+      </header>
+      <div class="slide-body">
+        <div class="statement-body" data-anim="fade-up" data-delay="1">
+          <p class="kicker">案例一</p>
+          <h2 class="h2">某金属制品<em>有限公司</em></h2>
+          <p class="lead muted">汽车零部件制造企业 · 年营收5亿元 · 主要客户为沃尔沃、新能源车企</p>
+          <p class="body" style="margin-top:var(--gap-md)">面临CBAM碳关税压力，需要通过系统化碳管理获得国际客户认证。部署IMPACTs系统后，实现了从能源数据采集到碳报告生成的全流程自动化。</p>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 金属制品案例</span>
+        <span class="label muted">48 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 49 · 案例成果 ═══════════════════════════= -->
+    <section class="slide slide--stats dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 实施成效</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">某金属制品公司<em>实施成效</em></h2>
+        <div class="stats-grid cols-4" data-anim="fade-up" data-delay="1">
+          <div class="stat-card"><div class="stat-value">沃尔沃</div><div class="stat-label">获得"绿色供应商"认证</div></div>
+          <div class="stat-card"><div class="stat-value">CBAM</div><div class="stat-label">通过欧盟CBAM首年核查</div></div>
+          <div class="stat-card"><div class="stat-value">新势力</div><div class="stat-label">入围新能源车企核心供应商</div></div>
+          <div class="stat-card"><div class="stat-value">8,986t</div><div class="stat-label">年减排二氧化碳</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 金属制品实施成效</span>
+        <span class="label muted">49 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 50 · 案例技术方案 ══════════════════════════ -->
+    <section class="slide slide--diagram light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 技术方案</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">设备碳排<em>监控系统</em></h2>
+        <div class="flow" data-anim="fade-up" data-delay="1">
+          <div class="flow-step"><div class="flow-num">01</div><div class="flow-title">数据采集</div><div class="flow-desc">PLC · Sensor · SMB</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">02</div><div class="flow-title">i-MCMS</div><div class="flow-desc">云端生产能源<br>碳排实时监控</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">03</div><div class="flow-title">分析洞察</div><div class="flow-desc">生产状况实时追踪<br>碳排放数据分析</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">04</div><div class="flow-title">设备升级</div><div class="flow-desc">提升生产力<br>降低碳排放</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · i-MCMS 技术架构</span>
+        <span class="label muted">50 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 51 · 案例胶膜 ═════════════════════════════= -->
+    <section class="slide slide--statement light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 客户案例</span>
+      </header>
+      <div class="slide-body">
+        <div class="statement-body" data-anim="fade-up" data-delay="1">
+          <p class="kicker">案例二</p>
+          <h2 class="h2">某胶膜<em>有限公司</em></h2>
+          <p class="lead muted">光伏胶膜制造企业 · 行业领先 · 产品出口欧盟</p>
+          <p class="body" style="margin-top:var(--gap-md)">光伏行业面临欧盟碳足迹认证要求。部署IMPACTs + i-MCMS后，实现各机台用电量实时监控，针对性进行设备升级（UV光固化设备、变频空调系统），大幅降低单位产品碳排放。</p>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 胶膜企业案例</span>
+        <span class="label muted">51 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 52 · 案例成果 ═══════════════════════════= -->
+    <section class="slide slide--stats dark">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 实施成效</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">某胶膜公司<em>实施成效</em></h2>
+        <div class="stats-grid cols-4" data-anim="fade-up" data-delay="1">
+          <div class="stat-card"><div class="stat-value">认证</div><div class="stat-label">行业首家<br>碳足迹认证胶膜企业</div></div>
+          <div class="stat-card"><div class="stat-value">20%</div><div class="stat-label">国际客户<br>绿色订单溢价</div></div>
+          <div class="stat-card"><div class="stat-value">省级</div><div class="stat-label">入选"智能工厂"<br>示范项目</div></div>
+          <div class="stat-card"><div class="stat-value">2.5年</div><div class="stat-label">预计收回<br>改造成本</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 胶膜企业实施成效</span>
+        <span class="label muted">52 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 53 · 案例技术方案 ══════════════════════════ -->
+    <section class="slide slide--diagram light">
+      <header class="slide-chrome">
+        <span class="label" style="color:var(--c-accent)">用友</span>
+        <span class="label muted">§ 技术方案</span>
+      </header>
+      <div class="slide-body">
+        <h2 class="h2" data-anim="fade-up" data-delay="0">设备碳排监控<em>+ 设备升级</em></h2>
+        <div class="flow" data-anim="fade-up" data-delay="1">
+          <div class="flow-step"><div class="flow-num">01</div><div class="flow-title">数据采集</div><div class="flow-desc">PLC · Sensor · SMB<br>各机台用电量监控</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">02</div><div class="flow-title">i-MCMS</div><div class="flow-desc">云端碳排<br>实时监控分析</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">03</div><div class="flow-title">设备升级</div><div class="flow-desc">UV光固化设备<br>变频空调系统</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-num">04</div><div class="flow-title">成效</div><div class="flow-desc">碳足迹认证<br>绿色订单溢价20%</div></div>
+        </div>
+      </div>
+      <footer class="slide-foot">
+        <span class="label muted">用友 · 胶膜企业技术方案</span>
+        <span class="label muted">53 / 54</span>
+      </footer>
+    </section>
+
+    <!-- ═══════ SLIDE 54 · END ═══════════════════════════════════= -->
+    <section class="slide slide--end dark">
+      <div class="slide-body" data-anim="fade-up" data-delay="0">
+        <h1 class="display" style="font-size:7vw">感谢聆听</h1>
+        <div class="rule" style="margin:var(--gap-lg) 0"></div>
+        <p class="lead muted">用友 · AI-APS 智能制造</p>
+        <p class="lead" style="color:var(--c-accent);margin-top:var(--gap-sm)">制造领域ISV赋能专场</p>
+        <p class="caption muted" style="margin-top:var(--gap-lg)">2026年5月</p>
+      </div>
+    </section>
+
+
+  </div><!-- /#deck -->
+
+<script>
+      /* ══════════════════════════════════════════════════════════════════════
+         SIGNAL PRESENTATION ENGINE
+         Self-contained navigation: keyboard, touch, mouse-wheel, nav-dots.
+         No external dependencies.
+         ══════════════════════════════════════════════════════════════════════ */
+      (function () {
+        "use strict";
+
+        /* ── State ─────────────────────────────────────────────────────────── */
+        const deck = document.getElementById("deck");
+        const slides = Array.from(document.querySelectorAll(".slide"));
+        const dotsEl = document.getElementById("nav-dots");
+        const counter = document.getElementById("slide-counter");
+        const total = slides.length;
+        let current = 0;
+        let animating = false;
+
+        /* ── Bootstrap: set deck width, build nav dots ─────────────────────── */
+        function init() {
+          // The deck is one wide strip — width equals N full viewports
+          deck.style.width = total + "00vw";
+
+          // Build one dot per slide
+          slides.forEach(function (_, i) {
+            const btn = document.createElement("button");
+            btn.className = "nav-dot";
+            btn.setAttribute("aria-label", "Go to slide " + (i + 1));
+            btn.addEventListener("click", function () {
+              goTo(i);
+            });
+            dotsEl.appendChild(btn);
+          });
+
+          // Activate the first slide immediately
+          goTo(0, true); // true = skip transition on load
+        }
+
+        /* ── goTo: the single source of truth for navigation ───────────────── */
+        function goTo(index, instant) {
+          // Clamp to valid range
+          index = Math.max(0, Math.min(total - 1, index));
+          if (index === current && !instant) return;
+
+          // Mark animating to block rapid key/swipe spam
+          animating = true;
+
+          // Deactivate current slide: reset animations by toggling is-active
+          const prev = slides[current];
+          prev.classList.remove("is-active");
+          // Force a reflow so removing then re-adding is-active (on same slide)
+          // actually re-triggers the keyframe animations
+          void prev.offsetWidth; // eslint-disable-line no-void
+
+          // Translate the deck
+          if (instant) {
+            // Remove transition temporarily for the initial load snap
+            deck.style.transition = "none";
+            deck.style.transform = "translateX(-" + index + "00vw)";
+            void deck.offsetWidth; // force reflow
+            deck.style.transition = "";
+          } else {
+            deck.style.transform = "translateX(-" + index + "00vw)";
+          }
+
+          // Activate new slide
+          current = index;
+          const next = slides[current];
+          next.classList.add("is-active");
+
+          // Update nav dots
+          Array.from(dotsEl.children).forEach(function (dot, i) {
+            dot.classList.toggle("is-active", i === current);
+          });
+
+          // Update counter: "3 / 12"
+          counter.textContent = current + 1 + " / " + total;
+
+          // Unlock after transition completes
+          const delay = instant
+            ? 0
+            : parseFloat(getComputedStyle(deck).transitionDuration) * 1000;
+          setTimeout(function () {
+            animating = false;
+          }, delay);
+        }
+
+        /* ── Keyboard navigation ──────────────────────────────────────────── */
+        document.addEventListener("keydown", function (e) {
+          if (animating) return;
+          if (
+            e.key === "ArrowRight" ||
+            e.key === "ArrowDown" ||
+            e.key === " "
+          ) {
+            e.preventDefault();
+            goTo(current + 1);
+          } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+            e.preventDefault();
+            goTo(current - 1);
+          } else if (e.key === "Home") {
+            e.preventDefault();
+            goTo(0);
+          } else if (e.key === "End") {
+            e.preventDefault();
+            goTo(total - 1);
+          }
+        });
+
+        /* ── Mouse-wheel navigation ───────────────────────────────────────── */
+        let wheelCooldown = false;
+        document.addEventListener(
+          "wheel",
+          function (e) {
+            e.preventDefault();
+            if (animating || wheelCooldown) return;
+            wheelCooldown = true;
+            setTimeout(function () {
+              wheelCooldown = false;
+            }, 900);
+            if (e.deltaY > 0 || e.deltaX > 0) {
+              goTo(current + 1);
+            } else {
+              goTo(current - 1);
+            }
+          },
+          { passive: false },
+        );
+
+        /* ── Touch swipe navigation ───────────────────────────────────────── */
+        let touchStartX = null;
+        let touchStartY = null;
+
+        document.addEventListener(
+          "touchstart",
+          function (e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+          },
+          { passive: true },
+        );
+
+        document.addEventListener(
+          "touchend",
+          function (e) {
+            if (touchStartX === null) return;
+            const dx = touchStartX - e.changedTouches[0].clientX;
+            const dy = touchStartY - e.changedTouches[0].clientY;
+            // Only respond if horizontal swipe is dominant
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+              if (animating) return;
+              if (dx > 0) {
+                goTo(current + 1); // swipe left: next
+              } else {
+                goTo(current - 1); // swipe right: prev
+              }
+            }
+            touchStartX = null;
+            touchStartY = null;
+          },
+          { passive: true },
+        );
+
+        /* ── Boot ─────────────────────────────────────────────────────────── */
+        init();
+      })();
+    </script>
+  </body>
+</html>
