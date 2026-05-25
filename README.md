@@ -153,3 +153,14 @@ Pink Script — After Hours
 
 上游模板（beautiful-html-templates）：MIT
 自有分析文檔：MIT
+## 兩套 CSS 系統
+
+| 系統 | 適用 | namespace |
+|------|------|------|
+| Christina 版 | Reveal.js 簡報快速套用 | `.slide-*` · Reveal.js 原生 |
+| Smart/Commander-D 版 | 通用設計 token · 跨專案 | `--rs-*`（潤思 namespace） |
+
+選擇指南：
+- 用友/企業簡報 → Christina 版（Reveal.js 相容）
+- 自訂 HTML 簡報/網站 → Smart 版（獨立設計 token）
+- 兩者可併用 — namespace 不衝突
